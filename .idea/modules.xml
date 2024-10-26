@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/concert-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/concert-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/coupon-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/coupon-service.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/jari-otte.main.iml" filepath="$PROJECT_DIR$/.idea/modules/jari-otte.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/reservation-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/reservation-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/user-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/user-service.main.iml" />
     </modules>
   </component>
 </project>
