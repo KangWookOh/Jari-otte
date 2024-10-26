@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/users/${segment}
+
+        - id: coupon-service
+          uri: lb://coupon-service
+          predicates:
+            - Path=/api/v1/coupons/**
+          filters:
+            - RewritePath=/api/v1/coupons/(?<segment>.*), /api/v1/coupons/${segment}
+
+        - id: reservation-service
+          uri: lb://reservation-service
+          predicates:
+            - Path=/api/v1/payments/**
+            - Path=/api/v1/reservations/**
+            - Path=/api/v1/reviews/**
+          filters:
+            - RewritePath=/api/v1/payments/(?<segment>.*), /api/v1/payments/${segment}
+            - RewritePath=/api/v1/reservations/(?<segment>.*), /api/v1/reservations/${segment}
+            - RewritePath=/api/v1/reviews/(?<segment>.*), /api/v1/reviews/${segment}
+
+        - id: concert-service
+          uri: lb://concert-service
+          predicates:
+            - Path=/api/v1/seats/**
+            - Path=/api/v1/venues/**
+            - Path=/api/v1/concerts/**
+          filters:
+            - RewritePath=/api/v1/seats/(?<segment>.*), /api/v1/seats/${segment}
+            - RewritePath=/api/v1/venues/(?<segment>.*), /api/v1/venues/${segment}
+            - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # Eureka Server URL
+    register-with-eureka: true
+    fetch-registry: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
