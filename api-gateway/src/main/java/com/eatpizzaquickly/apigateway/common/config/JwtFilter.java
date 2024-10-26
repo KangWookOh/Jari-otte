@@ -1,93 +1,85 @@
 package com.eatpizzaquickly.apigateway.common.config;
-
-
 import com.eatpizzaquickly.apigateway.common.dto.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import com.eatpizzaquickly.apigateway.common.dto.CustomUserDetails;
-import io.jsonwebtoken.Claims;
-import lombok.RequiredArgsConstructor;
-import org.apache.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtFilter implements WebFilter {
     private final JwtUtils jwtUtil;
-    private final RouterValidator routerValidator;
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        var request = exchange.getRequest();
+        ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        log.info("현재 요청 경로: {}", path);
-        log.info("isSecured 체크 결과: {}", routerValidator.isSecured.test(request));
 
-        // 로그인 경로는 JWT 검사를 우회
-        if (path.equals("/api/v1/users/login")) {
-            return chain.filter(exchange);
+        log.info("현재 요청 경로: {}", path);
+
+        // 인증 예외 경로 설정
+        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login")) {
+            return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과
         }
 
-        if (routerValidator.isSecured.test(request)) {
-            if (!request.getHeaders().containsKey("Authorization")) {
-                return onError(exchange, "No Authorization Header", HttpStatus.UNAUTHORIZED);
-            }
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return onError(exchange, "No Authorization header", HttpStatus.UNAUTHORIZED);
+        }
 
-            // Bearer 접두사 제거
-            String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            String token = jwtUtil.substringToken(authorizationHeader);  // Bearer 제거
-            Claims claims = jwtUtil.extractClaims(token);  // 토큰 검증
+        try {
+            String token = jwtUtil.substringToken(authHeader);
+            Claims claims = jwtUtil.extractClaims(token);
 
             if (claims == null) {
-                return onError(exchange, "Invalid Jwt Token", HttpStatus.UNAUTHORIZED);
+                return onError(exchange, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
             }
 
-            Long userId = Long.valueOf(claims.getSubject());
+            Long userId = claims.get("userId", Long.class);
             String userRole = claims.get("userRole", String.class);
 
-            UserDetails userDetails = CustomUserDetails.builder()
-                    .userId(userId)
-                    .role(userRole)
-                    .build();
+            log.info("Authenticated user ID: {}, Role: {}", userId, userRole);
+
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities()
+                    CustomUserDetails.builder()
+                            .userId(userId)
+                            .role(userRole)
+                            .build(),
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority(userRole))
             );
 
-            return chain.filter(exchange.mutate()
-                            .request(exchange.getRequest().mutate()
+            return chain.filter(
+                    exchange.mutate()
+                            .request(request.mutate()
                                     .header("X-Authenticated-User", String.valueOf(userId))
                                     .build())
-                            .build())
-                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
-        }
+                            .build()
+            ).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
 
-        return chain.filter(exchange);
+        } catch (Exception e) {
+            log.error("JWT validation failed", e);
+            return onError(exchange, "JWT validation failed", HttpStatus.UNAUTHORIZED);
+        }
     }
 
-    private Mono<Void> onError(ServerWebExchange exchange, String error, HttpStatus status) {
-        var response = exchange.getResponse();
-        response.setStatusCode(status);
+    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(httpStatus);
+        log.error("Error in JwtFilter: {}", err);
         return response.setComplete();
     }
 }
