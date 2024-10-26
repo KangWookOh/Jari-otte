@@ -45,6 +45,7 @@ spring:
             - RewritePath=/api/v1/venues/(?<segment>.*), /api/v1/venues/${segment}
             - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
 
+
 eureka:
   client:
     service-url:
