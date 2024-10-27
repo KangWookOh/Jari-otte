@@ -15,11 +15,11 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PostReservationResponse>> createReservation(
+    public PostReservationResponse createReservation(
             @RequestBody PostReservationRequest request
     ) {
         PostReservationResponse response = reservationService.createReservation(request);
-        return ResponseEntity.ok(ApiResponse.success("예약 성공", response));
+        return response;
     }
 
     @PostMapping("/{reservationId}/cancel")
