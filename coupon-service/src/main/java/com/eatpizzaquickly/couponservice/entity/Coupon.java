@@ -7,12 +7,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "coupone")
+@Table(name = "coupon")
 public class Coupon {
 
     @Id @GeneratedValue

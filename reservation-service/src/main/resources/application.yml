@@ -9,7 +9,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/reservationservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
-    password: root
+    password: "!mysql123"
 
   jpa:
     show-sql: true
@@ -41,3 +41,12 @@ payment:
     test_secret_api_key: test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R
     success_url: "http://localhost:8080/api/v1/payments/toss/success"
     fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
+
+
+feign:
+  client:
+    config:
+      default:
+        connectionTimeout: 1000
+        readTimeout: 3000
+        loggerLevel: FULL

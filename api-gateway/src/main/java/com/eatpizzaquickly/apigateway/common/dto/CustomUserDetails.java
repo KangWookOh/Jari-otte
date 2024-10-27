@@ -15,7 +15,6 @@ public class CustomUserDetails implements UserDetails {
     private final Long userId;
     private final String role;
 
-
     @Builder
     public CustomUserDetails(Long userId, String role) {
         this.userId = userId;
