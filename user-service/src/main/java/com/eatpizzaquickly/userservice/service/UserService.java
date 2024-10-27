@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -105,6 +106,14 @@ public class UserService {
             throw new PasswordNotMatchException("비밀번호가 일치 하지않습니다.");
         }
         user.deleteAccount();
+    }
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    }
+
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 
 

@@ -1,12 +1,10 @@
 package com.eatpizzaquickly.couponservice.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Data
-@NoArgsConstructor
 public class UserResponseDto {
     private Long id;
     private String email;
     private String name;
+
 }
