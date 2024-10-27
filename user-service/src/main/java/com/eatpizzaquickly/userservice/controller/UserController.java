@@ -5,6 +5,7 @@ import com.eatpizzaquickly.userservice.common.advice.ApiResponse;
 
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
+import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("수정 성공 ",user));
     }
 
+
     @PatchMapping("/delete")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@RequestHeader("X-Authenticated-User") Long userId,
                                                           @Valid @RequestBody UserRequestDto userRequestDto) {
@@ -62,6 +64,24 @@ public class UserController {
          return ResponseEntity.ok(ApiResponse.success("탈퇴성공"));
 
 
+    }
+
+
+    // 1. 특정 사용자 정보 조회
+    @GetMapping("/{userId}")
+    public UserResponseDto getUserById(@PathVariable Long userId) {
+        User user = userService.findById(userId);
+        return UserResponseDto.from(user);
+    }
+
+
+    // 2. 모든 사용자 ID 조회
+    @GetMapping
+    public List<Long> getAllUserIds() {
+        List<User> users = userService.findAll();
+        return users.stream()
+                .map(User::getId) // 각 사용자의 ID만 가져옴
+                .toList();
     }
 
 }

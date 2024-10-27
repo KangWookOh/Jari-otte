@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.apigateway.common.dto;
+package com.eatpizzaquickly.apigateway.common.config;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

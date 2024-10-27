@@ -4,6 +4,7 @@ package com.eatpizzaquickly.couponservice.repository;
 import com.eatpizzaquickly.couponservice.entity.Coupon;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CouponsRepository extends JpaRepository<Coupon, Long> {
@@ -12,7 +13,8 @@ public interface CouponsRepository extends JpaRepository<Coupon, Long> {
 
     Optional<Coupon> findByUserId(Long userId);
 
-    boolean existsByCouponIdAndUserId(Long couponId, Long userId);
+    List<Coupon> findByUserIdAndIsActiveTrue(Long userId);
+
 
 
 }

@@ -10,10 +10,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "coupon")
 public class Coupon {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "coupon_id")
     private Long id;
 
@@ -55,11 +54,21 @@ public class Coupon {
         }
     }
 
+    public void decreaseQuantity(int amount) {
+        if (this.quantity >= amount) {
+            this.quantity -= amount;
+        } else {
+            throw new IllegalStateException("발급할 수량이 부족합니다.");
+        }
+    }
+
     public void checkIsActive(){
         this.isActive = false;
 
     }
 
-
+    public void updateUserId(Long userId){
+        this.userId = userId;
+    }
 
 }
