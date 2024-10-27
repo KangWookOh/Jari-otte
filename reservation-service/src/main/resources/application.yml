@@ -7,9 +7,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/reservation-service?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/reservationservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
-    password: root
+    password: "!mysql123"
 
   jpa:
     show-sql: true
@@ -33,3 +33,20 @@ eureka:
 logging:
   level:
     root: info
+
+payment:
+  toss:
+    url: "https://api.tosspayments.com/v1/payments"
+    test_client_api_key: test_ck_d46qopOB896o7NDMkGm73ZmM75y0
+    test_secret_api_key: test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R
+    success_url: "http://localhost:8080/api/v1/payments/toss/success"
+    fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
+
+
+feign:
+  client:
+    config:
+      default:
+        connectionTimeout: 1000
+        readTimeout: 3000
+        loggerLevel: FULL

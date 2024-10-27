@@ -26,9 +26,7 @@ spring:
         - id: reservation-service
           uri: lb://reservation-service
           predicates:
-            - Path=/api/v1/payments/**
-            - Path=/api/v1/reservations/**
-            - Path=/api/v1/reviews/**
+            - Path=/api/v1/payments/**, /api/v1/reservations/**, /api/v1/reviews/**
           filters:
             - RewritePath=/api/v1/payments/(?<segment>.*), /api/v1/payments/${segment}
             - RewritePath=/api/v1/reservations/(?<segment>.*), /api/v1/reservations/${segment}
@@ -37,14 +35,11 @@ spring:
         - id: concert-service
           uri: lb://concert-service
           predicates:
-            - Path=/api/v1/seats/**
-            - Path=/api/v1/venues/**
-            - Path=/api/v1/concerts/**
+            - Path=/api/v1/seats/**, /api/v1/venues/**, /api/v1/concerts/**
           filters:
             - RewritePath=/api/v1/seats/(?<segment>.*), /api/v1/seats/${segment}
             - RewritePath=/api/v1/venues/(?<segment>.*), /api/v1/venues/${segment}
             - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
-
 
 eureka:
   client:
@@ -55,4 +50,15 @@ eureka:
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
+    reactor.netty: DEBUG
+
+jwt:
+  secret:
+    key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
+
+server:
+  port: 8080

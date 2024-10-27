@@ -1,5 +1,4 @@
 package com.eatpizzaquickly.apigateway.common.dto;
-
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,13 +14,11 @@ public class CustomUserDetails implements UserDetails {
 
     private final Long userId;
     private final String role;
-    private final String email;
 
     @Builder
-    public CustomUserDetails(Long userId, String role, String email) {
+    public CustomUserDetails(Long userId, String role) {
         this.userId = userId;
         this.role = role;
-        this.email = email;
     }
 
     @Override
