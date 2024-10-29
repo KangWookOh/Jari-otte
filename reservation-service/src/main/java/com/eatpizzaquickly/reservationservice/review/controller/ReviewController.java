@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/concerts/{concertId}")
+@RequestMapping("/api/v1/reviews")
 public class ReviewController {
     private final ReviewService reviewService;
 
     /* 댓글 추가 */
-    @PostMapping("/reviews")
+    @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponseDto>> createReview(
-            @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long concertId,
+            @RequestHeader("X-Authenticated-User") Long userId,
+            @RequestParam Long concertId,
             @RequestBody ReviewRequestDto requestDto
     ) {
         ReviewResponseDto result = reviewService.createReview(userId, concertId, requestDto);
@@ -27,9 +27,9 @@ public class ReviewController {
     }
 
     /* 댓글 조회 */
-    @GetMapping("/reviews")
+    @GetMapping
     public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> findReviews(
-            @PathVariable Long concertId,
+            @RequestParam Long concertId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -38,10 +38,10 @@ public class ReviewController {
     }
 
     /* 댓글 수정 */
-    @PutMapping("/reviews/{reviewId}")
+    @PutMapping("/{reviewId}")
     public ResponseEntity<ApiResponse<ReviewResponseDto>> updateReview(
-            @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long concertId,
+            @RequestHeader("X-Authenticated-User") Long userId,
+            @RequestParam Long concertId,
             @PathVariable Long reviewId,
             @RequestBody ReviewRequestDto requestDto
     ) {
@@ -50,10 +50,10 @@ public class ReviewController {
     }
 
     /* 댓글 삭제 */
-    @DeleteMapping("/reviews/{reviewId}")
+    @DeleteMapping("/{reviewId}")
     public ResponseEntity<ApiResponse> deleteReview(
-            @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long concertId,
+            @RequestHeader("X-Authenticated-User") Long userId,
+            @RequestParam Long concertId,
             @PathVariable Long reviewId
     ) {
         reviewService.deleteReview(userId, concertId, reviewId);
