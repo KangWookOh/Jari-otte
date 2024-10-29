@@ -14,6 +14,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
 import java.util.Collections;
 
 @Component
@@ -21,6 +22,7 @@ import java.util.Collections;
 @Slf4j
 public class JwtFilter implements WebFilter {
     private final JwtUtils jwtUtil;
+    private final RouterValidator routerValidator;
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -29,7 +31,7 @@ public class JwtFilter implements WebFilter {
         log.info("현재 요청 경로: {}", path);
 
         // 인증 예외 경로 설정
-        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/payment.html")) {
+        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/actuator/health")|| path.equals("/actuator/prometheus")) {
             return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과
         }
 

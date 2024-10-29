@@ -28,14 +28,22 @@ dependencyManagement {
 }
 
 dependencies {
-    // Spring Boot Starters
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // 기존 의존성
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
-    // Spring Cloud Dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    //prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+
+    // Feign Client 관련 의존성 추가
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
