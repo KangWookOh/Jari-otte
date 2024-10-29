@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ConcertCustomRepository {
-    Page<Concert> searchByTitleOrArtists(String keyword, Pageable pageable);
+//    Page<Concert> searchByTitleOrArtists(String keyword, Pageable pageable);
 }
