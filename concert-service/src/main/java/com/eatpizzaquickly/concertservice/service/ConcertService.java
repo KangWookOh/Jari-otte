@@ -13,6 +13,9 @@ import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
 import com.eatpizzaquickly.concertservice.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RMapCache;
+import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ public class ConcertService {
     private final ConcertRepository concertRepository;
     private final VenueRepository venueRepository;
     private final SeatRepository seatRepository;
+    private final RedissonClient redissonClient;
 
     @Transactional
     public ConcertDetailResponse saveConcert(ConcertCreateRequest concertCreateRequest) {
@@ -37,6 +41,7 @@ public class ConcertService {
         Concert concert = Concert.builder()
                 .title(concertCreateRequest.getTitle())
                 .description(concertCreateRequest.getDescription())
+                .artists(concertCreateRequest.getArtists())
                 .startDate(concertCreateRequest.getStartDate())
                 .endDate(concertCreateRequest.getEndDate())
                 .category(Category.of(concertCreateRequest.getCategory()))
@@ -46,6 +51,8 @@ public class ConcertService {
                 .build();
 
         concertRepository.save(concert);
+
+        RSet<String> availableSeats = redissonClient.getSet("concert:" + concert.getId() + ":available_seats");
 
         List<Seat> seats = new ArrayList<>();
         for (int i = 1; i <= venue.getSeatCount(); i++) {
@@ -58,6 +65,11 @@ public class ConcertService {
             seats.add(seat);
         }
         seatRepository.saveAll(seats);
+
+        // Redis에 예약 가능한 좌석 세팅
+        for (Seat seat : seats) {
+            availableSeats.add(String.valueOf(seat.getId()));
+        }
 
         return ConcertDetailResponse.from(concert, venue);
     }
