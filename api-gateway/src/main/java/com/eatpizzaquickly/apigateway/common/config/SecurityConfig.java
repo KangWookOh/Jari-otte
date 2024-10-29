@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/venue", "/api/v1/concerts").hasAuthority("ADMIN")
                         .pathMatchers(HttpMethod.PATCH, "/api/v1/concerts/*").hasAuthority("ADMIN")
+                        .pathMatchers("/payment.html").permitAll()
                         .anyExchange().authenticated())  // 나머지는 인증 필요
                 .build();
     }

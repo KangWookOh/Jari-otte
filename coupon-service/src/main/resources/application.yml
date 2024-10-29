@@ -11,6 +11,11 @@ spring:
     username: root
     password: root
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   jpa:
     show-sql: true
     hibernate:
@@ -19,6 +24,33 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic:
+      coupon-events: coupon-events
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: coupon-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.eatpizzaquickly.couponservice.event"
+        # 컨슈머 성능 최적화를 위한 추가 설정
+        fetch.min.bytes: 1024
+        fetch.max.wait.ms: 500
+        max.partition.fetch.bytes: 1048576
+        enable.auto.commit: false
 
 
 eureka:
