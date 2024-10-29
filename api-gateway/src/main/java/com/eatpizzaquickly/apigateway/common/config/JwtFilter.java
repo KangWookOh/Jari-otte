@@ -14,7 +14,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
 import java.util.Collections;
 
 @Component
@@ -30,7 +29,7 @@ public class JwtFilter implements WebFilter {
         log.info("현재 요청 경로: {}", path);
 
         // 인증 예외 경로 설정
-        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login")) {
+        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/payment.html")) {
             return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과
         }
 

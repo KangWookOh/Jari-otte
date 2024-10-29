@@ -5,18 +5,25 @@ package com.eatpizzaquickly.couponservice.controller;
 import com.eatpizzaquickly.couponservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.couponservice.dto.CouponRequestDto;
 import com.eatpizzaquickly.couponservice.dto.CouponResponseDto;
+import com.eatpizzaquickly.couponservice.entity.Coupon;
+import com.eatpizzaquickly.couponservice.kafka.CouponEvent;
+import com.eatpizzaquickly.couponservice.kafka.CouponEventProducer;
 import com.eatpizzaquickly.couponservice.service.CouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/coupons")
 @RequiredArgsConstructor
 public class CouponController {
+
     private final CouponService couponService;
+    private final CouponEventProducer eventProducer;
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<CouponResponseDto>> createCoupon(@RequestBody CouponRequestDto couponRequestDto) {
@@ -26,15 +33,38 @@ public class CouponController {
 
     @PostMapping("/{couponId}/issue-all")
     public ResponseEntity<ApiResponse<Void>> issueCoupon(@PathVariable("couponId") Long couponId) {
-        couponService.issueCouponToAllUsers(couponId);
-        return ResponseEntity.ok(ApiResponse.success("전체 사용자에게 쿠폰이 발급이 되었습니다!"));
+        // 기본 검증만 수행
+        Coupon coupon = couponService.validateBulkCoupon(couponId);
+
+        // 검증 통과 후 이벤트 발행
+        CouponEvent event = CouponEvent.builder()
+                .eventType("BULK_ISSUE")
+                .couponId(couponId)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        eventProducer.sendCouponEvent(event);
+
+        return ResponseEntity.ok(ApiResponse.success("전체 사용자에게 쿠폰 발급이 요청되었습니다. 잠시 후 발급이 완료됩니다."));
     }
     @PostMapping("/issue")
     public ResponseEntity<ApiResponse<Void>> issueCoupon(
             @RequestHeader("X-Authenticated-User") Long userId,
             @RequestBody CouponRequestDto couponRequestDto) {
-        couponService.issueCouponToUser(userId,couponRequestDto.getCouponCode());
-        return ResponseEntity.ok(ApiResponse.success("쿠폰이 성공적으로 발급이 완료 되었습니다."));
+        // 기본 검증만 수행
+        Coupon coupon = couponService.validateSingleCoupon(userId, couponRequestDto.getCouponCode());
+
+        // 검증 통과 후 이벤트 발행
+        CouponEvent event = CouponEvent.builder()
+                .eventType("SINGLE_ISSUE")
+                .userId(userId)
+                .couponCode(couponRequestDto.getCouponCode())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        eventProducer.sendCouponEvent(event);
+
+        return ResponseEntity.ok(ApiResponse.success("쿠폰 발급이 요청되었습니다. 잠시 후 발급이 완료됩니다."));
     }
 
     @GetMapping("/my-coupon")
@@ -42,9 +72,4 @@ public class CouponController {
         List<CouponResponseDto> coupon = couponService.findAvailableCoupons(userId);
         return ResponseEntity.ok(ApiResponse.success("사용 가능한 쿠폰 조회 성공",coupon));
     }
-
-
-
-
-
 }

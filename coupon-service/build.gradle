@@ -28,22 +28,38 @@ dependencyManagement {
 }
 
 dependencies {
-    // 기존 의존성
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Spring Cloud Dependencies
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+    // Resilience4j
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
+
+    // Database
     runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-    // Feign Client 관련 의존성 추가
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
-    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
-    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    //Reddison
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.1'
+
 }
 
 tasks.named('test') {

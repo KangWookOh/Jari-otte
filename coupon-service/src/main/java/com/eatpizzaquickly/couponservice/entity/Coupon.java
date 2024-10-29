@@ -1,16 +1,22 @@
 package com.eatpizzaquickly.couponservice.entity;
-
-
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.time.LocalDate;
+@Table(name = "Coupon", indexes = {
+        @Index(name = "idx_coupon_code_type_active_expiry", columnList = "couponCode, couponType, isActive, expiryDate")
+})
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Coupon {
+public class Coupon implements Serializable {
+
+    private static final long serialVersionUID = 1L;  // serialVersionUID 추가
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "coupon_id")
@@ -20,8 +26,10 @@ public class Coupon {
 
     private String couponName;
 
+    @Enumerated(EnumType.STRING)
     private CouponType couponType;
 
+    @Enumerated(EnumType.STRING)
     private DiscountType discountType;
 
     private int discount = 0;
@@ -32,7 +40,7 @@ public class Coupon {
 
     private  Boolean isActive = true;
 
-    private Long userId;
+    private LocalDate expiryDate;
 
 
     @Builder
@@ -44,6 +52,7 @@ public class Coupon {
         this.discount = discount;
         this.price = price;
         this.quantity = quantity;
+        this.expiryDate = LocalDate.now().plusWeeks(1);
     }
 
     public void decreaseQuantity() {
@@ -62,13 +71,13 @@ public class Coupon {
         }
     }
 
-    public void checkIsActive(){
-        this.isActive = false;
-
+    public boolean isCouponActive() {
+        // 만료 날짜를 확인해 활성 상태를 반환
+        if (expiryDate != null && expiryDate.isBefore(LocalDate.now())) {
+            this.isActive = false; // 만료 시 비활성화 처리
+        }
+        return this.isActive;
     }
 
-    public void updateUserId(Long userId){
-        this.userId = userId;
-    }
 
 }
