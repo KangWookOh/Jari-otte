@@ -29,7 +29,13 @@ eureka:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
 
 logging:
   level:
     root: info
+  config: classpath:logback-concert.xml

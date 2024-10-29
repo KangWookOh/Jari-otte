@@ -33,13 +33,17 @@ eureka:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
 
-
-logging:
-  level:
-    root: info
-
-
 jwt:
   secret:
     key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+
+logging:
+  level:
+    root: info
+  config: classpath:logback-user.xml
