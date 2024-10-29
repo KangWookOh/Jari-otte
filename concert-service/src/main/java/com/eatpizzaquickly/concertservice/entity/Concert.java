@@ -82,4 +82,7 @@ public class Concert {
     public void decreaseSeatCount() {
         this.seatCount--;
     }
+
+    public void updateSeatCount(int seatCount){
+        this.seatCount = seatCount;}
 }
