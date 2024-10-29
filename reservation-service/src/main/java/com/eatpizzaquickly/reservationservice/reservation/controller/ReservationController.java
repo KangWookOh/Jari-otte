@@ -24,7 +24,7 @@ public class ReservationController {
 
     @PostMapping("/{reservationId}/cancel")
     public ResponseEntity<ApiResponse> cancelReservation(
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-Authenticated-User") Long userId,
             @PathVariable Long reservationId
     ) {
         reservationService.cancelReservation(userId, reservationId);
