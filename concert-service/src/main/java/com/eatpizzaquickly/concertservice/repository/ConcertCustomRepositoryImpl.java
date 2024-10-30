@@ -1,6 +1,8 @@
 package com.eatpizzaquickly.concertservice.repository;
 
 import com.eatpizzaquickly.concertservice.entity.Concert;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,27 +18,36 @@ public class ConcertCustomRepositoryImpl implements ConcertCustomRepository{
 
     private final JPAQueryFactory queryFactory;
 
-
-
     @Override
     public Page<Concert> searchByTitleOrArtists(String keyword, Pageable pageable) {
+        BooleanBuilder builder = new BooleanBuilder();
 
-        List<Concert> results = queryFactory.selectFrom(concert)
-                .where(
-                        concert.title.containsIgnoreCase(keyword)
-                                .or(concert.artists.any().contains(keyword))
-                )
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchKeyword = "%" + keyword.toLowerCase() + "%";
+
+            builder.or(concert.title.lower().like(searchKeyword))
+                    .or(Expressions.stringTemplate(
+                            "function('lower', {0})",
+                            concert.artists
+                    ).like(searchKeyword));
+        }
+
+        // 결과 조회
+        List<Concert> results = queryFactory
+                .selectFrom(concert)
+                .where(builder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
+                .orderBy(concert.id.desc())
                 .fetch();
 
-        long total = queryFactory.selectFrom(concert)
-                .where(
-                        concert.title.containsIgnoreCase(keyword)
-                                .or(concert.artists.any().containsIgnoreCase(keyword))
-                )
-                .fetch().size();
+        // 총 개수 조회
+        Long total = queryFactory
+                .select(concert.count())
+                .from(concert)
+                .where(builder)
+                .fetchOne();
 
-        return new PageImpl<>(results, pageable, total);
+        return new PageImpl<>(results, pageable, total != null ? total : 0L);
     }
 }
