@@ -41,6 +41,8 @@ dependencies {
 
     //prometheus
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 
 
     // Feign Client 관련 의존성 추가
@@ -67,6 +69,13 @@ dependencies {
 
     //Reddison
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    //Spring batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.batch:spring-batch-core'
+    implementation 'org.springframework.batch:spring-batch-infrastructure'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
 
 }
 
