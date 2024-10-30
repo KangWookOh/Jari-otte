@@ -12,6 +12,7 @@ import com.eatpizzaquickly.userservice.exception.PasswordNotMatchException;
 import com.eatpizzaquickly.userservice.exception.UserNotFoundException;
 import com.eatpizzaquickly.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,12 +75,11 @@ public class UserService {
         return null;
     }
 
+    @Cacheable(value = "userById", key = "#id", cacheManager = "redisCacheManager")
     public UserResponseDto myPage(Long id){
         return userRepository.findUserById(id)
                 .orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다."));
     }
-
-
 
     @Transactional
     public UserResponseDto updateUser(Long id,UserRequestDto userRequestDto) {
@@ -106,6 +106,7 @@ public class UserService {
         }
         user.deleteAccount();
     }
+    @Cacheable(value = "userById", key = "#id", cacheManager = "redisCacheManager")
     public UserResponseDto findById(Long userId) {
         return userRepository.findUserById(userId)
                 .orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다."));
