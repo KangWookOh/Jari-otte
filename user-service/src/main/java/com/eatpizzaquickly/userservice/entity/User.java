@@ -5,11 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 @Getter
 @NoArgsConstructor
 @Entity
+@Table(name = "user", indexes = @Index(name = "idx_email", columnList = "email", unique = true)) // email 검색을 많이 수행
 public class User {
 
     @Id
