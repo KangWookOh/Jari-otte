@@ -26,8 +26,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: GMAIL_SMTP
-    password: GMAIL_PASSWORD
+    username: ${GMAIL_SMTP}
+    password: ${GMAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -35,8 +35,6 @@ spring:
           timeout: 5000
           starttls:
             enable: true
-          ssl:
-            protocols: "TLSv1.3"
       auth-code-expiration-millis: 180000 # 3분
 
 

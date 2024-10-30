@@ -32,8 +32,7 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("Jari-Otte 이메일 인증 메일");
-        message.setText("Jari-Otte 인증 번호\n");
-        message.setText(token);
+        message.setText("Jari-Otte 인증 번호\n" + token);
 
         javaMailSender.send(message);
         log.info(email + "에 인증 메일 발송");
