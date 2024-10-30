@@ -6,6 +6,7 @@ import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
+import com.eatpizzaquickly.concertservice.dto.response.PopularConcertResponse;
 import com.eatpizzaquickly.concertservice.service.ConcertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/concerts")
@@ -54,5 +57,12 @@ public class ConcertController {
     ) {
         Page<ConcertSimpleDto> concertSimpleDtos = concertService.searchByCategory(category, pageable);
         return ResponseEntity.ok(ApiResponse.success("조회 성공", concertSimpleDtos));
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<PopularConcertResponse>> getTopViewedConcerts() {
+        int limit = 10;
+        List<ConcertSimpleDto> topViewedConcerts = concertService.getTopViewedConcerts(limit);
+        return ResponseEntity.ok(ApiResponse.success("인기 콘서트 조회 성공", PopularConcertResponse.of(topViewedConcerts)));
     }
 }
