@@ -75,9 +75,8 @@ public class UserService {
     }
 
     public UserResponseDto myPage(Long id){
-        User user = userRepository.findById(id)
+        return userRepository.findUserById(id)
                 .orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다."));
-        return UserResponseDto.from(user);
     }
 
 
@@ -107,9 +106,9 @@ public class UserService {
         }
         user.deleteAccount();
     }
-    public User findById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    public UserResponseDto findById(Long userId) {
+        return userRepository.findUserById(userId)
+                .orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다."));
     }
 
     public List<User> findAll() {

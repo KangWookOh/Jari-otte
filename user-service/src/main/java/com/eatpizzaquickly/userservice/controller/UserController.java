@@ -45,7 +45,9 @@ public class UserController {
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<UserResponseDto>> getUsers(@RequestHeader("X-Authenticated-User") Long userId) {
         UserResponseDto user = userService.myPage(userId);
-        return ResponseEntity.ok(ApiResponse.success("마이페이지 조회 성공",user));
+        return ResponseEntity.ok(
+                ApiResponse.success("마이페이지 조회 성공", user)
+        );
     }
 
 
@@ -53,15 +55,19 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@RequestHeader("X-Authenticated-User") Long userId,
                                                                    @Valid @RequestBody UserRequestDto userRequestDto) {
         UserResponseDto user = userService.updateUser(userId, userRequestDto);
-        return ResponseEntity.ok(ApiResponse.success("수정 성공 ",user));
+        return ResponseEntity.ok(
+                ApiResponse.success("수정 성공 ", user)
+        );
     }
 
 
     @PatchMapping("/delete")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@RequestHeader("X-Authenticated-User") Long userId,
-                                                          @Valid @RequestBody UserRequestDto userRequestDto) {
-         userService.deleteUser(userId,userRequestDto.getPassword());
-         return ResponseEntity.ok(ApiResponse.success("탈퇴성공"));
+                                                        @Valid @RequestBody UserRequestDto userRequestDto) {
+        userService.deleteUser(userId, userRequestDto.getPassword());
+        return ResponseEntity.ok(
+                ApiResponse.success("탈퇴성공")
+        );
 
 
     }
@@ -69,9 +75,11 @@ public class UserController {
 
     // 1. 특정 사용자 정보 조회
     @GetMapping("/{userId}")
-    public UserResponseDto getUserById(@PathVariable Long userId) {
-        User user = userService.findById(userId);
-        return UserResponseDto.from(user);
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserById(@PathVariable Long userId) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "조회 성공", userService.findById(userId)
+                ));
     }
 
 
