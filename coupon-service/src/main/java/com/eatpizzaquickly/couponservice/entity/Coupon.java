@@ -44,7 +44,7 @@ public class Coupon implements Serializable {
 
 
     @Builder
-    private Coupon(String couponCode, String couponName, CouponType couponType,DiscountType discountType ,int discount, int price, int quantity) {
+    private Coupon(String couponCode, String couponName, CouponType couponType,DiscountType discountType ,int discount, int price, int quantity,LocalDate expiryDate) {
         this.couponCode = couponCode;
         this.couponName = couponName;
         this.couponType = couponType;
@@ -52,7 +52,7 @@ public class Coupon implements Serializable {
         this.discount = discount;
         this.price = price;
         this.quantity = quantity;
-        this.expiryDate = LocalDate.now().plusWeeks(1);
+        this.expiryDate = expiryDate;
     }
 
     public void decreaseQuantity() {

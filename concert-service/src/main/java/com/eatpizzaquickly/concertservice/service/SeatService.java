@@ -13,6 +13,7 @@ import com.eatpizzaquickly.concertservice.exception.NotFoundException;
 import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
+import com.eatpizzaquickly.concertservice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
@@ -30,9 +31,13 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final ReservationServiceClient reservationServiceClient;
     private final ConcertRedisRepository concertRedisRepository;
-    private final RedissonClient redissonClient;
 
     public SeatListResponse findSeatList(Long concertId) {
+        // Redis에 좌석 데이터가 없으면 RDB에서 다시 로드
+        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
+            reloadSeatsFromDatabase(concertId);
+        }
+
         List<Seat> seatList = seatRepository.findByConcertId(concertId);
         List<SeatDto> seatDtoList = seatList.stream().map(SeatDto::from).toList();
         return SeatListResponse.of(seatDtoList);
@@ -55,10 +60,9 @@ public class SeatService {
             Concert concert = concertRepository.findById(concertId)
                     .orElseThrow(() -> new NotFoundException("콘서트가 존재하지 않습니다."));
 
-            String redisKey = "concert:" + concertId + ":available_seats";
-            RSet<String> availableSeats = redissonClient.getSet(redisKey);
-
-            concert.updateSeatCount(availableSeats.size());
+            //TODO : 밑의 주석처리해놓은 것은 동시성 문제가 발생할 가능성 있기에 스케쥴링으로 처리할 것
+//            int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
+//            concert.updateSeatCount(availableSeatCount);
 
             //TODO: 비동기적으로 처리할 것
             PostReservationRequest postReservationRequest = PostReservationRequest.builder()
@@ -74,10 +78,15 @@ public class SeatService {
                 throw new BadRequestException();
             }
         } catch (Exception e) {
-            String redisKey = "concert:" + concertId + ":available_seats";
-            RSet<String> availableSeats = redissonClient.getSet(redisKey);
-            availableSeats.add(String.valueOf(seatId));
+            concertRedisRepository.addSeatBackToAvailable(concertId, seatId);
             throw new RuntimeException("좌석 예약 중 오류가 발생했습니다.");
         }
+    }
+
+
+    public void reloadSeatsFromDatabase(Long concertId) {
+        List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
+        List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
+        concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
     }
 }

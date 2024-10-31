@@ -16,15 +16,17 @@ public class ConcertDetailResponse {
     private String title;
     private String location;
     private String description;
+    private Integer seatCount;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    public static ConcertDetailResponse from(Concert concert, Venue venue) {
+    public static ConcertDetailResponse from(Concert concert, Venue venue, int seatCount) {
         return new ConcertDetailResponse(
                 concert.getId(),
                 concert.getTitle(),
                 venue.getLocation(),
                 concert.getDescription(),
+                seatCount,
                 concert.getStartDate(),
                 concert.getEndDate());
     }
