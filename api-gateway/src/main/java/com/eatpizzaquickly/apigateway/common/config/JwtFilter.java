@@ -1,8 +1,10 @@
 package com.eatpizzaquickly.apigateway.common.config;
+
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -23,6 +25,8 @@ import java.util.Collections;
 public class JwtFilter implements WebFilter {
     private final JwtUtils jwtUtil;
     private final RouterValidator routerValidator;
+    private final RedisTemplate<String, String> redisTemplate;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -31,7 +35,7 @@ public class JwtFilter implements WebFilter {
         log.info("현재 요청 경로: {}", path);
 
         // 인증 예외 경로 설정
-        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/actuator/health")|| path.equals("/actuator/prometheus")) {
+        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/actuator/health") || path.equals("/actuator/prometheus")) {
             return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과
         }
 
@@ -42,6 +46,9 @@ public class JwtFilter implements WebFilter {
 
         try {
             String token = jwtUtil.substringToken(authHeader);
+            if (redisTemplate.hasKey("BL:" + token)) {
+                return onError(exchange, "Expired JWT", HttpStatus.BAD_REQUEST);
+            }
             Claims claims = jwtUtil.extractClaims(token);
 
             if (claims == null) {

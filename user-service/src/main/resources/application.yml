@@ -61,5 +61,7 @@ logging:
     root: info
   config: classpath:logback-user.xml
 
-
+kakao:
+  client_id: ${KAKAO_API_KEY}
+  redirect_uri: http://localhost:8083/api/v1/users/oauth/kakao/callback
 

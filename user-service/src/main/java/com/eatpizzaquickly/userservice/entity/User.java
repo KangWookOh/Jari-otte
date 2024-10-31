@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Entity
+@Table(name = "user", indexes = @Index(name = "idx_email", columnList = "email", unique = true)) // email 검색을 많이 수행
 public class User {
 
     @Id
@@ -31,12 +32,16 @@ public class User {
     @Column(nullable = false)
     private UserRole userRole;
 
+    @Column(nullable = true, unique = true)
+    private Long kakaoId;
+
     @Builder
-    public User(String email, String password, String nickname, UserRole userRole) {
+    public User(String email, String password, String nickname, UserRole userRole, Long kakaoId) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.userRole = userRole;
+        this.kakaoId = kakaoId;
     }
 
     public void deleteAccount() {
@@ -46,5 +51,9 @@ public class User {
     public void updateUser(String password, String nickname) {
         this.password = password;
         this.nickname = nickname;
+    }
+
+    public void setKakaoId(Long kakaoId) {
+        this.kakaoId = kakaoId;
     }
 }
