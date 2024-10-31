@@ -10,6 +10,8 @@ import com.eatpizzaquickly.userservice.entity.UserRole;
 import com.eatpizzaquickly.userservice.exception.*;
 import com.eatpizzaquickly.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cache.annotation.Cacheable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -78,6 +80,8 @@ public class UserService {
         return null;
     }
 
+
+    @Cacheable(value = "userById", key = "#id", cacheManager = "redisCacheManager")
     public UserResponseDto myPage(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다."));
@@ -110,9 +114,10 @@ public class UserService {
         user.deleteAccount();
     }
 
-    public User findById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    @Cacheable(value = "userById", key = "#id", cacheManager = "redisCacheManager")
+    public UserResponseDto findById(Long userId) {
+        return userRepository.findUserById(userId)
+                .orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다."));
     }
 
     public List<User> findAll() {
