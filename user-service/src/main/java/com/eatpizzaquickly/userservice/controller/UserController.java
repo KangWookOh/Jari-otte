@@ -2,10 +2,10 @@ package com.eatpizzaquickly.userservice.controller;
 
 
 import com.eatpizzaquickly.userservice.common.advice.ApiResponse;
-
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
 import com.eatpizzaquickly.userservice.entity.User;
+import com.eatpizzaquickly.userservice.service.EmailService;
 import com.eatpizzaquickly.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +20,15 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-
+    private final EmailService emailService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResponseDto>> signUp(@Valid @RequestBody UserRequestDto userRequestDto) {
-        UserResponseDto user = userService.signUp(userRequestDto);
-        return ResponseEntity.ok(ApiResponse.success("회원가입 성공 ", user));
+    public ResponseEntity<ApiResponse<UserResponseDto>> signUp(
+            @Valid @RequestBody UserRequestDto userRequestDto,
+            @RequestParam(name = "token") String token
+    ) {
+        UserResponseDto user = userService.signUp(userRequestDto,token);
+        return ResponseEntity.ok(ApiResponse.success("회원가입 성공", user));
     }
 
     @PostMapping("/login")
@@ -50,28 +53,25 @@ public class UserController {
         );
     }
 
-
     @PatchMapping("/my")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@RequestHeader("X-Authenticated-User") Long userId,
                                                                    @Valid @RequestBody UserRequestDto userRequestDto) {
         UserResponseDto user = userService.updateUser(userId, userRequestDto);
+      
         return ResponseEntity.ok(
                 ApiResponse.success("수정 성공 ", user)
         );
     }
 
-
     @PatchMapping("/delete")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@RequestHeader("X-Authenticated-User") Long userId,
                                                         @Valid @RequestBody UserRequestDto userRequestDto) {
         userService.deleteUser(userId, userRequestDto.getPassword());
+
         return ResponseEntity.ok(
                 ApiResponse.success("탈퇴성공")
         );
-
-
     }
-
 
     // 1. 특정 사용자 정보 조회
     @GetMapping("/{userId}")
@@ -82,7 +82,6 @@ public class UserController {
                 ));
     }
 
-
     // 2. 모든 사용자 ID 조회
     @GetMapping
     public List<Long> getAllUserIds() {
@@ -92,4 +91,12 @@ public class UserController {
                 .toList();
     }
 
+    //메일 발송
+    @GetMapping("/sendmail")
+    public ResponseEntity<ApiResponse<String>> sendVerifyToken(
+            @RequestParam("email") String email
+    ) {
+        emailService.sendMail(email);
+        return ResponseEntity.ok(ApiResponse.success("인증번호가 메일로 발송되었습니다."));
+    }
 }

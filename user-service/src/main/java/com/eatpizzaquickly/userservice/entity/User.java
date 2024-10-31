@@ -32,7 +32,6 @@ public class User {
     @Column(nullable = false)
     private UserRole userRole;
 
-
     @Builder
     public User(String email, String password, String nickname, UserRole userRole) {
         this.email = email;

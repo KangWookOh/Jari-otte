@@ -62,6 +62,7 @@ public class CouponService {
                 .discount(couponRequestDto.getDiscount())
                 .price(couponRequestDto.getPrice())
                 .quantity(couponRequestDto.getQuantity())
+                .expiryDate(couponRequestDto.getExpiryDate())
                 .build();
         couponsRepository.save(coupon);
         return CouponResponseDto.from(coupon);
