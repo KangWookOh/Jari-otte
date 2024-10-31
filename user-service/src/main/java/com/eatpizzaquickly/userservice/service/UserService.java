@@ -3,6 +3,7 @@ package com.eatpizzaquickly.userservice.service;
 
 import com.eatpizzaquickly.userservice.common.config.JwtUtils;
 import com.eatpizzaquickly.userservice.common.config.PasswordEncoder;
+import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
 import com.eatpizzaquickly.userservice.entity.User;
@@ -71,6 +72,7 @@ public class UserService {
         return accessToken;
     }
 
+
     public String logout(String accessToken) {
         String email = jwtUtils.getUserIdFromToken(accessToken);
         redisTemplate.delete("RT:" + email);
@@ -130,5 +132,40 @@ public class UserService {
             throw new TokenNotMatchException("인증 실패! 인증 번호를 다시 입력해주세요");
         }
         log.info(email + " 인증 확인");
+    }
+
+    public boolean isUserExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Transactional
+    public String kakaoLogin(KakaoUserDto kakaoUser) {
+        User user = userRepository.findByKakaoId(kakaoUser.getId());
+        if (user == null) {
+            user = userRepository.findByEmail(kakaoUser.getKakaoAccount().getEmail())
+                    .orElse(null);
+            if(user!=null){
+                user.setKakaoId(kakaoUser.getId());
+            }else {
+                user = User.builder()
+                        .email(kakaoUser.getKakaoAccount().getEmail())
+                        .password("kakao" + kakaoUser.getId())
+                        .nickname(kakaoUser.getKakaoAccount().getProfile().getNickName())
+                        .userRole(UserRole.USER)
+                        .kakaoId(kakaoUser.getId())
+                        .build();
+            }
+            User savedUser = userRepository.save(user);
+        }
+        String accessToken = jwtUtils.createToken(user.getId(), user.getUserRole());
+        String refreshToken = jwtUtils.createRefreshToken(user.getId(), user.getUserRole());
+        // Redis에 RefreshToken 저장
+        redisTemplate.opsForValue().set(
+                "RT:" + user.getEmail(),
+                refreshToken,
+                jwtUtils.getRefreshTokenExpirationTime(),
+                TimeUnit.MILLISECONDS
+        );
+        return accessToken;
     }
 }
