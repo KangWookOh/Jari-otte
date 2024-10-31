@@ -1,5 +1,7 @@
 package com.eatpizzaquickly.userservice.common.advice;
+
 import com.eatpizzaquickly.userservice.common.exception.ForbiddenException;
+import com.eatpizzaquickly.userservice.common.exception.InternalServerException;
 import com.eatpizzaquickly.userservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.userservice.common.exception.UnauthorizedException;
 import org.apache.coyote.BadRequestException;
@@ -28,6 +30,11 @@ public class ControllerAdvice {
     @ExceptionHandler(UnauthorizedException.class) // 401 Unauthorized
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+    }
+
+    @ExceptionHandler(InternalServerException.class) //500 Internal Server Error
+    public ResponseEntity<ErrorResponse> handleInternalServerException(InternalServerException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(e.getMessage()));
     }
 
 }
