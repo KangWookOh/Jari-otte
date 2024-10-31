@@ -11,6 +11,16 @@ spring:
     username: root
     password: root
 
+  batch:
+    jdbc:
+      initialize-schema: always    # Spring Batch 메타 테이블 자동 생성
+    job:
+      enabled: false              # 애플리케이션 구동 시 자동 실행 방지
+  sql:
+    init:
+      mode: always
+      platform: mysql
+
   data:
     redis:
       host: localhost
@@ -46,12 +56,10 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "com.eatpizzaquickly.couponservice.event"
-        # 컨슈머 성능 최적화를 위한 추가 설정
         fetch.min.bytes: 1024
         fetch.max.wait.ms: 500
         max.partition.fetch.bytes: 1048576
         enable.auto.commit: false
-
 
 eureka:
   client:
@@ -70,4 +78,5 @@ management:
 logging:
   level:
     root: info
+    org.springframework.batch: DEBUG  # Spring Batch 관련 디버그 로그 활성화
   config: classpath:logback-coupon.xml
