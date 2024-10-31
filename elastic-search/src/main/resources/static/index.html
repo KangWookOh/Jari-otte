@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>검색어 자동완성</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .search-container {
+            max-width: 500px;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 40px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            background-color: white;
+        }
+
+        .search-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #6b7280;
+        }
+
+        .suggestions-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .suggestion-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .count {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 12px;
+            color: #6b7280;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+<div class="search-container">
+    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <input type="search" class="search-input" placeholder="검색어를 입력하세요">
+    <div class="suggestions-container"></div>
+</div>
+
+<script>
+    const searchInput = document.querySelector('.search-input');
+    const suggestionsContainer = document.querySelector('.suggestions-container');
+    let debounceTimer;
+
+    // 검색어 자동완성 가져오기
+    async function fetchSuggestions(query) {
+        if (!query.trim()) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+
+        suggestionsContainer.style.display = 'block';
+        suggestionsContainer.innerHTML = '<div class="loading">검색중...</div>';
+
+        try {
+            const response = await fetch(`/Searchs/autocomples?query=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error('Failed to fetch suggestions');
+            const suggestions = await response.json();
+
+            if (suggestions.length === 0) {
+                suggestionsContainer.innerHTML = '<div class="no-results">검색 결과가 없습니다</div>';
+                return;
+            }
+
+            suggestionsContainer.innerHTML = suggestions
+                .map(suggestion => `
+                        <div class="suggestion-item" onclick="handleSearch('${suggestion.query}')">
+                            <div class="suggestion-text">
+                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                ${suggestion.query}
+                            </div>
+                            <span class="count">${suggestion.count}회</span>
+                        </div>
+                    `)
+                .join('');
+        } catch (error) {
+            console.error('Error fetching suggestions:', error);
+            suggestionsContainer.innerHTML = '<div class="no-results">오류가 발생했습니다</div>';
+        }
+    }
+
+    // 검색 실행 및 카운트 증가
+    async function handleSearch(query) {
+        try {
+            const response = await fetch(`/Searchs?query=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error('Failed to perform search');
+            searchInput.value = query;
+            fetchSuggestions(query);
+        } catch (error) {
+            console.error('Error performing search:', error);
+        }
+    }
+
+    // 입력 이벤트 처리
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetchSuggestions(e.target.value);
+        }, 300);
+    });
+
+    // Enter 키 처리
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            handleSearch(e.target.value);
+        }
+    });
+
+    // 검색창 외부 클릭시 자동완성 닫기
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
