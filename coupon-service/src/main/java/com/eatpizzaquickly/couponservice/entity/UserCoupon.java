@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "usercoupon",
         indexes = {
-                @Index(name = "idx_user_coupon_expiry", columnList = "userId, couponId, expiryDate") // 복합 인덱스 추가
+                @Index(name = "idx_user_coupon_expiry", columnList = "userId, couponId, expiryDate, isExpired"),
+                @Index(name = "idx_user_coupon_status", columnList = "isUsed, isExpired, expiryDate")
         }
 )
 public class UserCoupon {
@@ -45,7 +46,7 @@ public class UserCoupon {
         this.userId = userId;
         this.couponId = couponId;
         this.isUsed = isUsed != null ? isUsed : false;  // 기본값 설정
-        this.expiryDate = LocalDate.now().plusWeeks(1);
+        this.expiryDate = LocalDate.now().minusDays(1);
         this.issueDate = issueDate != null ? issueDate : LocalDateTime.now();  // 기본값 설정
     }
 }
