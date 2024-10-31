@@ -18,7 +18,7 @@ public class ConcertCustomRepositoryImpl implements ConcertCustomRepository{
 
     private final JPAQueryFactory queryFactory;
 
-    @Override
+//    @Override
     public Page<Concert> searchByTitleOrArtists(String keyword, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 

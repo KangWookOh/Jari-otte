@@ -6,6 +6,8 @@ import com.eatpizzaquickly.couponservice.entity.DiscountType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Getter
 @NoArgsConstructor
 public class CouponRequestDto {
@@ -24,7 +26,9 @@ public class CouponRequestDto {
 
     private int quantity;
 
-    public CouponRequestDto(String couponName,String couponCode, CouponType couponType, DiscountType discountType, int discount, int price, int quantity) {
+    private LocalDate expiryDate;
+
+    public CouponRequestDto(String couponName,String couponCode, CouponType couponType, DiscountType discountType, int discount, int price, int quantity, LocalDate expiryDate) {
         this.couponName = couponName;
         this.couponCode = couponCode;
         this.couponType = couponType;
@@ -32,5 +36,6 @@ public class CouponRequestDto {
         this.discount = discount;
         this.price = price;
         this.quantity = quantity;
+        this.expiryDate = expiryDate;
     }
 }
