@@ -10,6 +10,7 @@ import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.entity.UserRole;
 import com.eatpizzaquickly.userservice.exception.*;
 import com.eatpizzaquickly.userservice.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -72,11 +73,21 @@ public class UserService {
         return accessToken;
     }
 
-
     public String logout(String accessToken) {
         String email = jwtUtils.getUserIdFromToken(accessToken);
+        // 리프레시 토큰 삭제
         redisTemplate.delete("RT:" + email);
-        jwtUtils.invalidToken(accessToken);
+        // 액세스 토큰 블랙리스트 등록
+        Claims claims = jwtUtils.extractClaims(accessToken);
+        long expiration = claims.getExpiration().getTime() - System.currentTimeMillis();
+        if (expiration > 0) {
+            redisTemplate.opsForValue().set(
+                    "BL:" + accessToken,
+                    "logout",
+                    expiration,
+                    TimeUnit.MILLISECONDS);
+        }
+
         return null;
     }
 
@@ -144,9 +155,9 @@ public class UserService {
         if (user == null) {
             user = userRepository.findByEmail(kakaoUser.getKakaoAccount().getEmail())
                     .orElse(null);
-            if(user!=null){
+            if (user != null) {
                 user.setKakaoId(kakaoUser.getId());
-            }else {
+            } else {
                 user = User.builder()
                         .email(kakaoUser.getKakaoAccount().getEmail())
                         .password("kakao" + kakaoUser.getId())
