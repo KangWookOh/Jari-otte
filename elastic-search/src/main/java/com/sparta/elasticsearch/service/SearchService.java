@@ -22,13 +22,13 @@ public class SearchService {
     private final SearchTermRepository searchTermRepository;
 
     /* 캐싱을 적용하여 인기 검색어를 가져온다. */
-    @Cacheable(value = "autocompleteCache", key = "#prefix")
+//    @Cacheable(value = "autocompleteCache", key = "#prefix")
     public List<SearchTerm> autocomplete(String prefix) {
         return searchTermRepository.findTop10ByQueryStartingWithOrderByCountDesc(prefix);
     }
 
     /* 검색어 카운트 업데이트 및 캐시 초기화 */
-    @CacheEvict(value = "autocompleteCache", allEntries = true)
+//    @CacheEvict(value = "autocompleteCache", allEntries = true)
     public void updateSearchCount(String query) {
         SearchTerm searchTerm = searchTermRepository.findByQuery(query).orElseGet(
                 () -> {

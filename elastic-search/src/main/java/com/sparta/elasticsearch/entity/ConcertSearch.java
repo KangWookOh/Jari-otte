@@ -24,4 +24,6 @@ public class ConcertSearch {
 
     @Field(type = FieldType.Date)
     private LocalDateTime endDate;  // 종료 날짜로 검색이나 필터링 가능
+
+    private Long count;
 }
