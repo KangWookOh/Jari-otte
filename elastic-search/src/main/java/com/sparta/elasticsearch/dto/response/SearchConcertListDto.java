@@ -1,9 +1,8 @@
 package com.sparta.elasticsearch.dto.response;
 
-import com.sparta.elasticsearch.common.advice.ApiResponse;
+import com.sparta.elasticsearch.dto.SearchConcertResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 

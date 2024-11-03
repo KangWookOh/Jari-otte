@@ -1,17 +1,13 @@
 package com.sparta.elasticsearch.service;
 
-import com.sparta.elasticsearch.common.advice.ApiResponse;
 import com.sparta.elasticsearch.dto.response.SearchConcertListDto;
-import com.sparta.elasticsearch.dto.response.SearchConcertResponseDto;
+import com.sparta.elasticsearch.dto.SearchConcertResponseDto;
 import com.sparta.elasticsearch.entity.ConcertSearch;
 import com.sparta.elasticsearch.entity.SearchTerm;
 import com.sparta.elasticsearch.repository.SearchTermRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

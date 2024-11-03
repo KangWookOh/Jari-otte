@@ -1,4 +1,4 @@
-package com.sparta.elasticsearch.dto.response;
+package com.sparta.elasticsearch.dto;
 
 import com.sparta.elasticsearch.entity.ConcertSearch;
 import lombok.AllArgsConstructor;

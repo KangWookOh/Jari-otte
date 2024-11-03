@@ -2,7 +2,7 @@ package com.sparta.elasticsearch.controller;
 
 import com.sparta.elasticsearch.common.advice.ApiResponse;
 import com.sparta.elasticsearch.dto.response.SearchConcertListDto;
-import com.sparta.elasticsearch.dto.response.SearchConcertResponseDto;
+import com.sparta.elasticsearch.entity.ConcertSearch;
 import com.sparta.elasticsearch.entity.SearchTerm;
 import com.sparta.elasticsearch.service.SearchService;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +26,6 @@ public class SearchTermController {
         return searchService.autocomplete(query);
     }
 
-    /* 검색 시 카운트 증가 및 자동 완성 결과 반환 */
-    @GetMapping("/Searchs")
-    public List<SearchTerm> search(@RequestParam String query) {
-        searchService.updateSearchCount(query);
-        return searchService.autocomplete(query);
-    }
-
     /* 멀티필드검색 및 오타 허용 검색 (공연이름, 아티스트 이름) */
     @GetMapping("/Search")
     public ResponseEntity<ApiResponse<SearchConcertListDto>> searchConcerts(
@@ -40,6 +33,7 @@ public class SearchTermController {
             @PageableDefault Pageable pageable
     ) {
         SearchConcertListDto searchConcertListDto = searchService.searchConcerts(query, pageable);
+        searchService.updateSearchCount(query); // 검색한 횟수 카운트
         return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", searchConcertListDto));
     }
 }
