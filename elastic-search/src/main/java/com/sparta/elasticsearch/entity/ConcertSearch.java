@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(indexName = "concerts")
 @Getter
@@ -14,6 +15,9 @@ public class ConcertSearch {
 
     @Field(type = FieldType.Text)
     private String title;  // 검색할 수 있도록 텍스트 타입으로 설정
+
+    @Field(type = FieldType.Text)
+    private List<String> artists; // 아티스트
 
     @Field(type = FieldType.Date)
     private LocalDateTime startDate;  // 날짜 기준 필터링을 위해 날짜 타입으로 설정

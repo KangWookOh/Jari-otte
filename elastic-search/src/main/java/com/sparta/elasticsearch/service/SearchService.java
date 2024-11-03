@@ -1,10 +1,16 @@
 package com.sparta.elasticsearch.service;
 
+import com.sparta.elasticsearch.common.advice.ApiResponse;
+import com.sparta.elasticsearch.dto.response.SearchConcertResponseDto;
+import com.sparta.elasticsearch.entity.ConcertSearch;
 import com.sparta.elasticsearch.entity.SearchTerm;
 import com.sparta.elasticsearch.repository.SearchTermRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,5 +42,12 @@ public class SearchService {
         }
 
         searchTermRepository.save(searchTerm);
+    }
+
+    /* 멀티필드검색 및 오타 허용 검색 (공연이름, 아티스트 이름) */
+    public ResponseEntity<ApiResponse<SearchConcertResponseDto>> searchConcerts(String query, Pageable pageable) {
+        Page<ConcertSearch> concerts = searchTermRepository.search(query, pageable);
+//        List<ConcertSimpleDto> concertSimpleDtoList = concerts.map(ConcertSimpleDto::from).toList();
+        return null;
     }
 }
