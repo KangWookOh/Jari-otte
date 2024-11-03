@@ -1,6 +1,7 @@
 package com.sparta.elasticsearch.service;
 
 import com.sparta.elasticsearch.common.advice.ApiResponse;
+import com.sparta.elasticsearch.dto.response.SearchConcertListDto;
 import com.sparta.elasticsearch.dto.response.SearchConcertResponseDto;
 import com.sparta.elasticsearch.entity.ConcertSearch;
 import com.sparta.elasticsearch.entity.SearchTerm;
@@ -45,9 +46,9 @@ public class SearchService {
     }
 
     /* 멀티필드검색 및 오타 허용 검색 (공연이름, 아티스트 이름) */
-    public ResponseEntity<ApiResponse<SearchConcertResponseDto>> searchConcerts(String query, Pageable pageable) {
+    public SearchConcertListDto searchConcerts(String query, Pageable pageable) {
         Page<ConcertSearch> concerts = searchTermRepository.search(query, pageable);
-//        List<ConcertSimpleDto> concertSimpleDtoList = concerts.map(ConcertSimpleDto::from).toList();
-        return null;
+        List<SearchConcertResponseDto> concertSimpleDtoList = concerts.map(SearchConcertResponseDto::from).toList();
+        return SearchConcertListDto.of(concertSimpleDtoList);
     }
 }

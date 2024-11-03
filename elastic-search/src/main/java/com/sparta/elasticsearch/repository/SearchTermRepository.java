@@ -18,6 +18,7 @@ public interface SearchTermRepository extends ElasticsearchRepository<SearchTerm
     List<SearchTerm> findTop10ByQueryStartingWithOrderByCountDesc(String prefix);
     Optional<SearchTerm> findByQuery(String query);
 
+    /* 멀티 필드 검색, 오타 허용 (fuzziness: AUTO) */
     @Query("{" +
             "\"bool\": {" +
             "\"should\": [" +
