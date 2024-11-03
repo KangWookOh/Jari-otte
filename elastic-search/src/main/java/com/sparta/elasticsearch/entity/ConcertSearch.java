@@ -25,5 +25,20 @@ public class ConcertSearch {
     @Field(type = FieldType.Date)
     private LocalDateTime endDate;  // 종료 날짜로 검색이나 필터링 가능
 
+    @Field(type = FieldType.Long)
     private Long count;
+
+    public ConcertSearch() {
+        this.count = 0L;
+    }
+
+    public void initializeQueryAndCount(String title, Long count) {
+        this.title = title;
+        this.count = count;
+    }
+
+    public void countUpdate(Long count) {
+        this.count = count;
+    }
+
 }
