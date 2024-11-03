@@ -26,8 +26,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${GMAIL_SMTP}
-    password: ${GMAIL_PASSWORD}
+    username: team.jariotte@gmail.com
+    password: gvmnniigwxirvwis
     properties:
       mail:
         smtp:
@@ -62,6 +62,6 @@ logging:
   config: classpath:logback-user.xml
 
 kakao:
-  client_id: ${KAKAO_API_KEY}
+  client_id: 8a8997adb373bd809a4e9631152c6d88
   redirect_uri: http://localhost:8083/api/v1/users/oauth/kakao/callback
 

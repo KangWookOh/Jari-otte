@@ -27,29 +27,32 @@ dependencyManagement {
     }
 }
 
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-// Feign Client 관련 의존성 추가
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
-    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
-    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 
-    //prometheus
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+    // Lombok(코드 자동 생성)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-    // Kafka
+    // 이메일 발송을 위한 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // 이벤트 수신을 위한 Kafka 의존성
     implementation 'org.springframework.kafka:spring-kafka'
+
+    // Spring Cloud Eureka 클라이언트 (MSA 서비스 등록 및 검색)
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // Feign Client 관련 의존성 추가
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+    implementation 'com.google.firebase:firebase-admin:8.1.0'
+
 }
 
 tasks.named('test') {

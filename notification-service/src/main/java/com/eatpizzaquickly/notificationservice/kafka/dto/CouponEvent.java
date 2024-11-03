@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.couponservice.kafka;
+package com.eatpizzaquickly.notificationservice.kafka.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -13,19 +13,18 @@ public class CouponEvent {
     private Long couponId;
     private String couponCode;
     private Long userId;
+    private String email;
     private LocalDateTime timestamp;
-    private String email;  // 이메일 필드 추가
-    private String notificationMessage;  // 알림 메시지 추가
+    private String notificationMessage;
 
     @Builder
-    public CouponEvent(String eventType, Long couponId, Long userId,String couponCode,LocalDateTime timestamp,
-                       String email, String notificationMessage) {
+    public CouponEvent(String eventType, Long couponId, String couponCode, Long userId, String email, LocalDateTime timestamp, String notificationMessage) {
         this.eventType = eventType;
         this.couponId = couponId;
-        this.userId = userId;
         this.couponCode = couponCode;
-        this.timestamp = timestamp;
+        this.userId = userId;
         this.email = email;
+        this.timestamp = timestamp;
         this.notificationMessage = notificationMessage;
     }
 }

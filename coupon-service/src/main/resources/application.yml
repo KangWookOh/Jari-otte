@@ -13,12 +13,12 @@ spring:
 
   batch:
     jdbc:
-      initialize-schema: always    # Spring Batch 메타 테이블 자동 생성
+      initialize-schema: never   # 수동으로 생성한 테이블과 충돌 방지
     job:
       enabled: false              # 애플리케이션 구동 시 자동 실행 방지
   sql:
     init:
-      mode: always
+      mode: never
       platform: mysql
 
   data:
@@ -29,7 +29,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate          # Hibernate가 스키마를 검증만 하고 변경하지 않도록 설정
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -68,15 +68,3 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, prometheus
-
-logging:
-  level:
-    root: info
-    org.springframework.batch: DEBUG  # Spring Batch 관련 디버그 로그 활성화
-  config: classpath:logback-coupon.xml

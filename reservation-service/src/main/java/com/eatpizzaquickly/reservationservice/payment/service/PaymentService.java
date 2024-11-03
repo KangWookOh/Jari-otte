@@ -3,14 +3,17 @@ package com.eatpizzaquickly.reservationservice.payment.service;
 import com.eatpizzaquickly.reservationservice.common.config.TossPaymentConfig;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
+import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentConfirmRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.TossPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.UserResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayMethod;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
 import com.eatpizzaquickly.reservationservice.payment.exception.*;
+import com.eatpizzaquickly.reservationservice.payment.kafka.PaymentEventProducer;
 import com.eatpizzaquickly.reservationservice.payment.repository.PaymentRepository;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
@@ -39,6 +42,9 @@ public class PaymentService {
     private final TossPaymentConfig tossPaymentConfig;
     private final RestTemplate restTemplate;
     private final CouponFeignClient couponFeignClient;
+    private final UserClient userClient;
+    private final PaymentEventProducer paymentEventProducer; // 결제 이벤트 프로듀서 주입
+
 
     @Value("${payment.toss.url}")
     private String TOSS_URL;
@@ -137,6 +143,14 @@ public class PaymentService {
 
             // 4. 주문 처리 로직 (필요한 경우)
             // orderService.completeOrder(orderId);
+            UserResponseDto user = userClient.getUserById(reservation.getUserId()).getData();
+            String userEmail = user.getEmail();
+
+            paymentEventProducer.sendPaymentSuccessEvent(
+                    payment.getId(),
+                    userEmail,  // 가져온 이메일을 전달
+                    payment.getAmount()
+            );
 
             return GetPaymentResponse.builder()
                     .payStatus(PayStatus.PAID)
@@ -205,6 +219,17 @@ public class PaymentService {
             // 예약 상태 업데이트
             reservation.statusUpdate(ReservationStatus.CANCELED);
 
+            // 결제 취소 이벤트 발행
+            UserResponseDto user = userClient.getUserById(reservation.getUserId()).getData();
+            String userEmail = user.getEmail();
+
+            paymentEventProducer.sendPaymentCancelEvent(
+                    payment.getId(),
+                    userEmail,
+                    payment.getAmount(),
+                    cancelReason
+            );
+
             return GetPaymentResponse.builder()
                     .payStatus(PayStatus.CANCELLED)
                     .paymentKey(payment.getPaymentKey())
@@ -212,7 +237,6 @@ public class PaymentService {
                     .payInfo(payment.getPayUid())
                     .message("결제가 성공적으로 취소되었습니다.")
                     .build();
-
         } catch (HttpClientErrorException e) {
             log.error("결제 취소 실패: {}", e.getMessage());
             throw new PaymentCancelException("결제 취소 처리 중 오류가 발생했습니다: " + e.getMessage());
@@ -226,6 +250,7 @@ public class PaymentService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         PaymentConfirmRequest confirmRequest = new PaymentConfirmRequest(paymentKey, orderId, amount);
+
         HttpEntity<PaymentConfirmRequest> request = new HttpEntity<>(confirmRequest, headers);
 
         ResponseEntity<TossPaymentResponse> response = restTemplate.postForEntity(

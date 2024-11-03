@@ -18,7 +18,7 @@ public class CouponBatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job couponBatchJob;
 
-    @Scheduled(cron = "0 */1 * * * *") // 매 1분마다 실행
+    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
     public void runBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

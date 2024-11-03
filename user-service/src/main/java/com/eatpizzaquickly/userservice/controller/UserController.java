@@ -82,13 +82,9 @@ public class UserController {
                 ));
     }
 
-    // 2. 모든 사용자 ID 조회
     @GetMapping
-    public List<Long> getAllUserIds() {
-        List<User> users = userService.findAll();
-        return users.stream()
-                .map(User::getId) // 각 사용자의 ID만 가져옴
-                .toList();
+    public List<UserResponseDto> getAllUsers() {
+        return userService.findAll(); // 모든 사용자 정보 반환
     }
 
     //메일 발송

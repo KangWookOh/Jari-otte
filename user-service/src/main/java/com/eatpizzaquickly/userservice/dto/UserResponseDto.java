@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserResponseDto {
 
+    private Long id;
     private String email;
 
     private String nickname;
@@ -19,7 +20,8 @@ public class UserResponseDto {
     @JsonIgnore
     private String password;
 
-    public UserResponseDto(String email, String nickname, UserRole userRole) {
+    public UserResponseDto(Long id,String email, String nickname, UserRole userRole) {
+        this.id = id;
         this.email = email;
         this.nickname = nickname;
         this.userRole = userRole;
@@ -27,6 +29,7 @@ public class UserResponseDto {
 
     public static UserResponseDto from(User user) {
         return new UserResponseDto(
+                user.getId(),
                 user.getEmail(),
                 user.getNickname(),
                 user.getUserRole()
