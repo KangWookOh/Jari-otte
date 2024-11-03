@@ -19,10 +19,23 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
+
   data:
     redis:
       host: localhost
       port: 6379
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}  # AWS 비밀 키
+    region:
+      static: ${AWS_REGION}  # AWS 리전
+    s3:
+      bucket: ${AWS_S3_BUCKET}  # S3 버킷 이름
+    stack:
+      auto: false
 
 eureka:
   client:
