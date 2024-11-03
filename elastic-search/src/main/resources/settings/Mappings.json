@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "query": {
+      "type": "text",
+      "analyzer": "korean_analyzer"
+    },
+    "queryKeyword": {
+      "type": "keyword"
+    },
+    "count": {
+      "type": "long"
+    }
+  }
+}
