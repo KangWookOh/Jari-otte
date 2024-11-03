@@ -65,7 +65,6 @@ management:
       exposure:
         include: health, info, prometheus
 
-
 logging:
   level:
     org.springframework.cloud.gateway: TRACE

@@ -3,5 +3,5 @@ server.name: kibana
 server.host: "0"
 # Elasticsearch 서버 정보
 elasticsearch.hosts: http://elasticsearch:9200
-elasticsearch.username: "jari"
-elasticsearch.password: "jariotte1123"
+elasticsearch.username: "viva"
+elasticsearch.password: "viva-test123"

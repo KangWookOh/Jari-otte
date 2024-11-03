@@ -5,12 +5,15 @@ spring:
   application:
     name: reservation-service
 
+  # Bean 오버라이딩 허용 설정 추가
+  main:
+    allow-bean-definition-overriding: true
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/reservationservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: root
-
 
   jpa:
     show-sql: true
@@ -21,6 +24,23 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic:
+      payment-events: payment-events
+      reservation-events: reservation-events
+    consumer:
+      group-id: notification-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 eureka:
   client:
@@ -38,14 +58,13 @@ payment:
     success_url: "http://localhost:8080/api/v1/payments/toss/success"
     fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
 
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, prometheus
-
-logging:
-  level:
-    root: info
-  config: classpath:logback-reservation.xml
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info, prometheus
+#
+#logging:
+#  level:
+#    root: info
+#  config: classpath:logback-reservation.xml

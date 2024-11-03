@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.couponservice.dto;
+package com.eatpizzaquickly.reservationservice.payment.dto.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

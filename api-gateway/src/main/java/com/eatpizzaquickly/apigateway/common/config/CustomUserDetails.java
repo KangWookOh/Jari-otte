@@ -14,11 +14,13 @@ public class CustomUserDetails implements UserDetails {
 
     private final Long userId;
     private final String role;
+    private final String nickname;
 
     @Builder
-    public CustomUserDetails(Long userId, String role) {
+    public CustomUserDetails(Long userId, String role,String nickname) {
         this.userId = userId;
         this.role = role;
+        this.nickname = nickname;
     }
 
     @Override

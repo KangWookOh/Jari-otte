@@ -129,12 +129,17 @@ public class UserService {
 
     @Cacheable(value = "userById", key = "#id", cacheManager = "redisCacheManager")
     public UserResponseDto findById(Long userId) {
-        return userRepository.findUserById(userId)
-                .orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다."));
+        User user = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다"));
+        return UserResponseDto.from(user);
     }
 
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<UserResponseDto> findAll() {
+        List<User> users = userRepository.findAll();
+
+        // User 엔티티 리스트를 UserResponseDto 리스트로 변환
+        return users.stream()
+                .map(UserResponseDto::from) // UserResponseDto.from(User user) 메서드 사용
+                .toList();
     }
 
     public void verifyToken(String email, String token) {

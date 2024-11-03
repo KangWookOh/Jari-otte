@@ -46,7 +46,7 @@ public class UserCoupon {
         this.userId = userId;
         this.couponId = couponId;
         this.isUsed = isUsed != null ? isUsed : false;  // 기본값 설정
-        this.expiryDate = LocalDate.now().minusDays(1);
+        this.expiryDate = LocalDate.now().plusDays(1);
         this.issueDate = issueDate != null ? issueDate : LocalDateTime.now();  // 기본값 설정
     }
 }

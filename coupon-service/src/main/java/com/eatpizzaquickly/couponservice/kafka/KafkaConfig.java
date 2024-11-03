@@ -35,6 +35,21 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
+    // String 타입용 KafkaTemplate 빈
+    @Bean
+    public ProducerFactory<String, String> stringProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
+    public KafkaTemplate<String, String> stringKafkaTemplate() {
+        return new KafkaTemplate<>(stringProducerFactory());
+    }
+
 
 
 }
