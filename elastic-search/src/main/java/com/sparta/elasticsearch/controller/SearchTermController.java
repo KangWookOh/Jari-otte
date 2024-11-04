@@ -7,17 +7,20 @@ import com.sparta.elasticsearch.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
 public class SearchTermController {
     private final SearchService searchService;
 
-    /* 자동 완성 결과 반환 */
+    /* 자동 완성 목록 결과 반환 */
     @GetMapping("/Search/autocomplete")
     public ResponseEntity<ApiResponse<SearchAutocompleteDto>> autocomplete(@RequestParam String query) {
         SearchAutocompleteDto autocompleteDto = searchService.autocomplete(query);
@@ -28,10 +31,13 @@ public class SearchTermController {
     @GetMapping("/Search")
     public ResponseEntity<ApiResponse<SearchConcertListDto>> searchConcerts(
             @RequestParam String query,
+            @RequestParam(name = "startDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,   // 시작 날짜 (선택적)
+            @RequestParam(name = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,     // 종료 날짜 (선택적)
             @PageableDefault Pageable pageable
     ) {
-        SearchConcertListDto searchConcertListDto = searchService.searchConcerts(query, pageable);
-        searchService.updateSearchCount(query); // 검색한 횟수 카운트
+        SearchConcertListDto searchConcertListDto = searchService.searchConcerts(query, startDate, endDate, pageable);
         return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", searchConcertListDto));
     }
 }

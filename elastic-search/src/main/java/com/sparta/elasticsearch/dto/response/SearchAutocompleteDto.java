@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public class SearchAutocompleteDto {
-    private List<SearchAutoTitleDto> titles;
+    private List<SearchAutoTitleDto> autoList;
 
     public static SearchAutocompleteDto of(List<SearchAutoTitleDto> titles) {
         return new SearchAutocompleteDto(titles);
