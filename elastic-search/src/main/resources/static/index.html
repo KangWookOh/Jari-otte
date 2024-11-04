@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 검색어 자동완성</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .search-wrapper {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-container {
+            width: 100%;
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 40px;
+            font-size: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #19ce60;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #808080;
+        }
+
+        .autocomplete-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: -1px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .autocomplete-item {
+            padding: 10px 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #f5f5f5;
+        }
+
+        .autocomplete-item .icon {
+            width: 16px;
+            height: 16px;
+            color: #808080;
+        }
+
+        .loading {
+            padding: 10px;
+            text-align: center;
+            color: #666;
+        }
+
+        .no-results {
+            padding: 10px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="search-wrapper">
+    <div class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <input type="text" class="search-input" placeholder="검색어를 입력하세요">
+    </div>
+    <div class="autocomplete-container"></div>
+</div>
+
+<script>
+    const searchInput = document.querySelector('.search-input');
+    const autocompleteContainer = document.querySelector('.autocomplete-container');
+    let selectedIndex = -1;
+    let debounceTimer;
+
+    // 입력 이벤트 리스너
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = searchInput.value.trim();
+            if (query) {
+                fetchAutocomplete(query);
+            } else {
+                hideAutocomplete();
+            }
+        }, 200); // 200ms 디바운스
+    });
+
+    // 키보드 네비게이션
+    searchInput.addEventListener('keydown', (e) => {
+        const items = document.querySelectorAll('.autocomplete-item');
+
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+                break;
+            case 'Enter':
+                if (selectedIndex >= 0 && items[selectedIndex]) {
+                    e.preventDefault();
+                    selectItem(items[selectedIndex].textContent.trim());
+                }
+                break;
+            case 'Escape':
+                hideAutocomplete();
+                break;
+        }
+    });
+
+    // 자동완성 데이터 가져오기
+    async function fetchAutocomplete(query) {
+        showLoading();
+        try {
+            const response = await fetch(`/Search/autocomplete?query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.success && data.data.autoList) {
+                displayResults(data.data.autoList);
+            } else {
+                showNoResults();
+            }
+        } catch (error) {
+            console.error('자동완성 요청 실패:', error);
+            showError();
+        }
+    }
+
+    // 결과 표시
+    function displayResults(results) {
+        if (results.length === 0) {
+            showNoResults();
+            return;
+        }
+
+        autocompleteContainer.innerHTML = '';
+        results.forEach((result, index) => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.innerHTML = `
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    ${result.auto}
+                `;
+
+            item.addEventListener('click', () => selectItem(result.auto));
+            item.addEventListener('mouseover', () => {
+                selectedIndex = index;
+                updateSelection(document.querySelectorAll('.autocomplete-item'));
+            });
+
+            autocompleteContainer.appendChild(item);
+        });
+
+        autocompleteContainer.style.display = 'block';
+    }
+
+    // 선택 항목 업데이트
+    function updateSelection(items) {
+        items.forEach((item, index) => {
+            if (index === selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    // 항목 선택
+    function selectItem(text) {
+        searchInput.value = text;
+        hideAutocomplete();
+        // 여기에 선택 후 추가 동작 구현
+    }
+
+    // 로딩 표시
+    function showLoading() {
+        autocompleteContainer.innerHTML = '<div class="loading">검색중...</div>';
+        autocompleteContainer.style.display = 'block';
+    }
+
+    // 결과 없음 표시
+    function showNoResults() {
+        autocompleteContainer.innerHTML = '<div class="no-results">검색 결과가 없습니다</div>';
+        autocompleteContainer.style.display = 'block';
+    }
+
+    // 에러 표시
+    function showError() {
+        autocompleteContainer.innerHTML = '<div class="no-results">오류가 발생했습니다</div>';
+        autocompleteContainer.style.display = 'block';
+    }
+
+    // 자동완성 숨기기
+    function hideAutocomplete() {
+        autocompleteContainer.style.display = 'none';
+        selectedIndex = -1;
+    }
+
+    // 검색창 외부 클릭시 자동완성 닫기
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !autocompleteContainer.contains(e.target)) {
+            hideAutocomplete();
+        }
+    });
+</script>
+</body>
+</html>

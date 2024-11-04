@@ -1,0 +1,168 @@
+package com.sparta.elasticsearch.service;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
+import com.sparta.elasticsearch.dto.SearchAutoTitleDto;
+import com.sparta.elasticsearch.dto.SearchConcertResponseDto;
+import com.sparta.elasticsearch.dto.response.SearchAutocompleteDto;
+import com.sparta.elasticsearch.dto.response.SearchConcertListDto;
+import com.sparta.elasticsearch.entity.ConcertSearch;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class SearchService {
+    private final ElasticsearchClient elasticsearchClient;
+
+    /* 자동 완성 기능 구현 (오타 허용 및 부분 일치) */
+    public SearchAutocompleteDto autocomplete(String query) {
+        try {
+            // MultiMatchQuery 구성: 오타 허용과 접두사 일치
+            MultiMatchQuery matchQueryWithFuzziness = MultiMatchQuery.of(m -> m
+                    .query(query)                                         // 사용자가 입력한 검색어
+                    .fields("title^2", "artists")                         // title에 가중치 2배 부여, artists 필드 포함
+                    .fuzziness("AUTO")                                    // 오타 허용
+                    .operator(Operator.Or)                                // OR 연산자로 매칭
+            );
+
+            // 접두사 일치를 위한 MultiMatchQuery 구성
+            MultiMatchQuery matchQueryWithPhrasePrefix = MultiMatchQuery.of(m -> m
+                    .query(query)
+                    .fields("title^2", "artists")                         // title과 artists 필드 포함
+                    .type(co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType.PhrasePrefix) // 접두사 일치
+            );
+
+            // BoolQuery 구성
+            BoolQuery boolQuery = BoolQuery.of(b -> b
+                    .should(Query.of(q -> q.multiMatch(matchQueryWithFuzziness)))      // 오타 허용 쿼리
+                    .should(Query.of(q -> q.multiMatch(matchQueryWithPhrasePrefix)))   // 접두사 일치 쿼리
+            );
+
+            // SearchRequest 생성
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                    .index("concerts")                        // 인덱스 이름
+                    .query(Query.of(q -> q.bool(boolQuery)))  // BoolQuery 사용
+                    .size(10)                                 // 최대 10개 결과만 반환
+            );
+
+            // 검색 실행
+            SearchResponse<ConcertSearch> searchResponse = elasticsearchClient.search(searchRequest, ConcertSearch.class);
+
+            // 검색 결과를 DTO로 변환 (title과 artists의 각 항목을 개별적으로 추가하고 일치율 기준으로 정렬)
+            List<SearchAutoTitleDto> autoList = searchResponse.hits().hits().stream()
+                    .flatMap(hit -> {
+                        assert hit.source() != null;
+                        return SearchAutoTitleDto.from(hit.source()).stream();
+                    })
+                    // query로 시작하는 항목을 먼저 필터링
+                    .sorted((dto1, dto2) -> {
+                        boolean dto1StartsWithQuery = dto1.getAuto().startsWith(query);
+                        boolean dto2StartsWithQuery = dto2.getAuto().startsWith(query);
+
+                        // query로 시작하는 항목이 먼저 오도록 정렬
+                        if (dto1StartsWithQuery && !dto2StartsWithQuery) return -1;
+                        if (!dto1StartsWithQuery && dto2StartsWithQuery) return 1;
+
+                        // 시작하지 않는 경우는 score 기준 정렬 유지
+                        return 0;
+                    })
+                    .collect(Collectors.toList());
+
+            // 결과 반환
+            return new SearchAutocompleteDto(autoList);
+
+        } catch (IOException e) {
+            throw new RuntimeException("자동완성 검색 실패", e);
+        }
+    }
+
+    /* 멀티필드검색 및 오타 허용 검색 (공연이름, 아티스트 이름) */
+    public SearchConcertListDto searchConcerts(String query, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        try {
+            // 다중 필드 검색, 오타 허용
+            // title과 artists 필드에서 검색어가 포함된 문서를 찾고, 오타도 허용합니다.
+            MultiMatchQuery matchQueryWithFuzziness = MultiMatchQuery.of(m -> m
+                    .query(query)   // 사용자가 입력한 검색어
+                    .fields("title^2", "artists")   // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
+                    .fuzziness("AUTO")  // 오타를 허용하여 유사한 검색어도 매칭
+                    .operator(Operator.Or) // 모든 검색어를 포함할 필요 없이 하나만 포함해도 매칭
+            );
+
+            // phrase_prefix
+            // 검색어가 입력된 단어의 앞부분만 맞아도 매칭되도록 설정
+            // 검색어의 접두사에 맞는 문서도 검색
+            MultiMatchQuery matchQueryWithPhrasePrefix = MultiMatchQuery.of(m -> m
+                    .query(query)                                   // 사용자가 입력한 검색어
+                    .fields("title^2", "artists")    // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
+                    .type(TextQueryType.PhrasePrefix)               // phrase_prefix 타입으로 설정하여 접두사 일치 허용
+            );
+
+            // BoolQuery에 추가할 필터 리스트 생성
+            List<Query> filters = new ArrayList<>();
+
+            // 날짜 필터 추가 (startDate와 endDate가 모두 존재할 경우에만 필터 적용)
+            if (startDate != null && endDate != null) {
+                // LocalDate를 시작일의 처음 시간과 종료일의 마지막 시간으로 변환 후 UTC로 변환
+                Instant startDateTime = startDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+                Instant endDateTime = endDate.atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
+
+                // RangeQuery 설정
+                RangeQuery dateRangeFilter = RangeQuery.of(r -> r
+                        .field("startDate")
+                        .gte(JsonData.of(startDateTime.toString()))  // JsonData로 변환하여 ISO-8601 형식으로 전달
+                        .lte(JsonData.of(endDateTime.toString()))    // JsonData로 변환하여 ISO-8601 형식으로 전달
+                );
+                filters.add(Query.of(q -> q.range(dateRangeFilter)));
+            }
+
+            // Bool 쿼리 구성
+            // BoolQuery의 should 조건을 사용하여 두 쿼리 중 하나라도 매칭되면 결과에 포함시킵니다.
+            BoolQuery boolQuery = BoolQuery.of(b -> b
+                    .should(Query.of(q -> q.multiMatch(matchQueryWithFuzziness)))        // 첫 번째 쿼리: 오타 허용
+                    .should(Query.of(q -> q.multiMatch(matchQueryWithPhrasePrefix)))    // 두 번째 쿼리: 접두사 일치
+                    .filter(filters)                                                    // 필터 조건 추가 (필터가 있을 경우에만 적용)
+            );
+
+            // SearchRequest 생성
+            // 검색할 인덱스와 쿼리를 설정하고, 페이지네이션 정보(from과 size)를 설정합니다.
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                    .index("concerts")                      // 검색할 인덱스 이름
+                    .query(Query.of(q -> q.bool(boolQuery)))      // 위에서 구성한 BoolQuery를 사용
+                    .from((int) pageable.getOffset())             // 검색 시작 위치 설정 (페이지네이션의 offset)
+                    .size(pageable.getPageSize())                 // 한 페이지에 포함될 문서 수 설정
+            );
+
+            // 검색 실행
+            // elasticsearchClient의 search 메서드를 통해 Elasticsearch에 쿼리를 실행, 검색 결과를 가져온다.
+            SearchResponse<ConcertSearch> searchResponse = elasticsearchClient.search(searchRequest, ConcertSearch.class);
+
+            // 결과를 SearchConcertResponseDto 로 변환
+            List<SearchConcertResponseDto> concertSimpleDtoList = searchResponse.hits().hits().stream()
+                    .map(Hit::source)                           // Hit 객체에서 ConcertSearch 객체 추출
+                    .filter(Objects::nonNull)                   // null 값 필터링 (null 값이 있는 경우 리스트에 포함되지 않음)
+                    .map(SearchConcertResponseDto::from)        // 각 ConcertSearch 객체를 SearchConcertResponseDto로 변환
+                    .collect(Collectors.toList());              // 결과를 리스트로 수집
+
+            // SearchConcertListDto 로 반환
+            return SearchConcertListDto.of(concertSimpleDtoList);
+
+        } catch (IOException e) {
+            throw new RuntimeException("검색 쿼리 실패", e);
+        }
+    }
+}
