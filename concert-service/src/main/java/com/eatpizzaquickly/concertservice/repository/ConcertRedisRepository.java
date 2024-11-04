@@ -56,7 +56,6 @@ public class ConcertRedisRepository {
     }
 
     public void reserveSeat(Long concertId, Long seatId) {
-//        String availableSeatsKey = "concert:" + concertId + ":available_seats";
         String availableSeatsKey = RedisUtil.getAvailableSeatsKey(concertId);
         String seatValue = String.valueOf(seatId);
 
