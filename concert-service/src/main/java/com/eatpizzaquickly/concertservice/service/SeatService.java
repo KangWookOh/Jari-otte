@@ -1,22 +1,17 @@
 package com.eatpizzaquickly.concertservice.service;
 
-import com.eatpizzaquickly.concertservice.client.reservation.PostReservationRequest;
-import com.eatpizzaquickly.concertservice.client.reservation.PostReservationResponse;
 import com.eatpizzaquickly.concertservice.client.reservation.ReservationServiceClient;
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
+import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
 import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
-import com.eatpizzaquickly.concertservice.exception.BadRequestException;
 import com.eatpizzaquickly.concertservice.exception.NotFoundException;
 import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
-import com.eatpizzaquickly.concertservice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RSet;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +26,7 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final ReservationServiceClient reservationServiceClient;
     private final ConcertRedisRepository concertRedisRepository;
+    private final KafkaEventProducer kafkaEventProducer;
 
     public SeatListResponse findSeatList(Long concertId) {
         // Redis에 좌석 데이터가 없으면 RDB에서 다시 로드
@@ -60,23 +56,19 @@ public class SeatService {
             Concert concert = concertRepository.findById(concertId)
                     .orElseThrow(() -> new NotFoundException("콘서트가 존재하지 않습니다."));
 
-            //TODO : 밑의 주석처리해놓은 것은 동시성 문제가 발생할 가능성 있기에 스케쥴링으로 처리할 것
+            //TODO : 스케쥴링 혹은 특점 시점에만 반영하기
 //            int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
 //            concert.updateSeatCount(availableSeatCount);
 
-            //TODO: 비동기적으로 처리할 것
-            PostReservationRequest postReservationRequest = PostReservationRequest.builder()
-                    .price(request.getPrice())
-                    .concertId(concertId)
+            SeatReservationEvent reservationEvent = SeatReservationEvent.builder()
                     .userId(userId)
                     .seatId(seatId)
+                    .concertId(concertId)
+                    .price(request.getPrice())
                     .build();
 
-            PostReservationResponse postReservationResponse = reservationServiceClient.createReservation(postReservationRequest);
+            kafkaEventProducer.produceSeatReservationEvent(reservationEvent);
 
-            if (postReservationResponse.getStatus().isEmpty()) {
-                throw new BadRequestException();
-            }
         } catch (Exception e) {
             concertRedisRepository.addSeatBackToAvailable(concertId, seatId);
             throw new RuntimeException("좌석 예약 중 오류가 발생했습니다.");
