@@ -38,7 +38,7 @@ public class SecurityConfig {
                             return exchange.getResponse().setComplete();
                         }))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/v1/users", "/api/v1/users/login","/actuator/prometheus","/actuator/health").permitAll()  // 인증 예외 경로 설정
+                        .pathMatchers("/api/v1/users", "/api/v1/users/login", "/api/v1/users/sendmail","/actuator/prometheus","/actuator/health").permitAll()  // 인증 예외 경로 설정
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/venue", "/api/v1/concerts").hasAuthority("ADMIN")
                         .pathMatchers(HttpMethod.PATCH, "/api/v1/concerts/*").hasAuthority("ADMIN")

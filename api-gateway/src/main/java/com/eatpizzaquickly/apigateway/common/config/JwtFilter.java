@@ -35,7 +35,7 @@ public class JwtFilter implements WebFilter {
         log.info("현재 요청 경로: {}", path);
 
         // 인증 예외 경로 설정
-        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/actuator/health") || path.equals("/actuator/prometheus")) {
+        if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") || path.equals("/actuator/health") || path.equals("/actuator/prometheus") || path.startsWith("/api/v1/users/sendmail")) {
             return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과
         }
 
