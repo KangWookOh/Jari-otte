@@ -38,9 +38,15 @@ public class ConcertController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {
+    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertSearchList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {
         ConcertListResponse concertListResponse = concertService.searchConcert(keyword, pageable);
         return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", concertListResponse));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertList(@PageableDefault Pageable pageable) {
+        ConcertListResponse concertListResponse = concertService.findAllConcerts(pageable);
+        return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertListResponse));
     }
 
     // 관리자 권한 필요
@@ -50,9 +56,9 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 삭제 성공"));
     }
 
-    @GetMapping
+    @GetMapping("/category/{category}")
     public ResponseEntity<ApiResponse<Page<ConcertSimpleDto>>> searchByCategory(
-            @RequestParam(name = "category") String category,
+            @PathVariable(name = "category") String category,
             @PageableDefault Pageable pageable
     ) {
         Page<ConcertSimpleDto> concertSimpleDtos = concertService.searchByCategory(category, pageable);
