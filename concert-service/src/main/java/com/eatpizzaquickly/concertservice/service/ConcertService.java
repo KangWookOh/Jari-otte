@@ -76,6 +76,11 @@ public class ConcertService {
         return ConcertDetailResponse.from(concert, venue, venue.getSeatCount());
     }
 
+    public ConcertListResponse findAllConcerts(Pageable pageable) {
+        List<ConcertSimpleDto> concertSimpleDtoList = concertRepository.findAll(pageable).map(ConcertSimpleDto::from).toList();
+        return ConcertListResponse.of(concertSimpleDtoList);
+    }
+
     public ConcertDetailResponse findConcert(Long concertId) {
         Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
         increaseViewCount(concertId);
