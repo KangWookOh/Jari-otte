@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 public class ReservationController {
     private final ReservationService reservationService;
 
-    @PostMapping
-    public PostReservationResponse createReservation(
-            @RequestBody PostReservationRequest request
-    ) {
-        PostReservationResponse response = reservationService.createReservation(request);
-        return response;
-    }
+//    @PostMapping
+//    public PostReservationResponse createReservation(
+//            @RequestBody PostReservationRequest request
+//    ) {
+//        PostReservationResponse response = reservationService.createReservation(request);
+//        return response;
+//    }
 
     @PostMapping("/{reservationId}/cancel")
     public ResponseEntity<ApiResponse> cancelReservation(
