@@ -1,6 +1,6 @@
 package com.eatpizzaquickly.concertservice.service;
 
-import com.eatpizzaquickly.concertservice.client.reservation.ReservationServiceClient;
+import com.eatpizzaquickly.concertservice.client.KafkaEventProducer;
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
@@ -24,7 +24,6 @@ public class SeatService {
 
     private final ConcertRepository concertRepository;
     private final SeatRepository seatRepository;
-    private final ReservationServiceClient reservationServiceClient;
     private final ConcertRedisRepository concertRedisRepository;
     private final KafkaEventProducer kafkaEventProducer;
 
