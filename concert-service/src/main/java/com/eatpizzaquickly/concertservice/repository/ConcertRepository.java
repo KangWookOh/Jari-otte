@@ -17,7 +17,8 @@ public interface ConcertRepository extends JpaRepository<Concert, Long>, Concert
 
     Page<Concert> findAllByCategory(Category name, Pageable pageable);
 
-    @Query("SELECT c FROM Concert c WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "OR LOWER(c.artists) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    Page<Concert> searchByTitleOrArtists(@Param("keyword") String keyword, Pageable pageable);
+    // 삭제
+//    @Query("SELECT c FROM Concert c WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+//            "OR LOWER(c.artists) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+//    Page<Concert> searchByTitleOrArtists(@Param("keyword") String keyword, Pageable pageable);
 }

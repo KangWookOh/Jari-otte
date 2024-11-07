@@ -1,4 +1,4 @@
-package com.sparta.elasticsearch.common.config;
+package com.eatpizzaquickly.concertservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

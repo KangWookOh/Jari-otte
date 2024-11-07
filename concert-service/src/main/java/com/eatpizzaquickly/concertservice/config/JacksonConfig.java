@@ -1,4 +1,4 @@
-package com.sparta.elasticsearch.common.config;
+package com.eatpizzaquickly.concertservice.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;

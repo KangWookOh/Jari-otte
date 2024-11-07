@@ -1,5 +1,0 @@
-spring:
-  elasticsearch:
-    username: root
-    password: root123
-    uris: localhost:9200

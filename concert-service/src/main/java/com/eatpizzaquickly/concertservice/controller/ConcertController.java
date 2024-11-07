@@ -37,11 +37,12 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertDetailResponse));
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertSearchList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {
-        ConcertListResponse concertListResponse = concertService.searchConcert(keyword, pageable);
-        return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", concertListResponse));
-    }
+    // 삭제
+//    @GetMapping("/search")
+//    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertSearchList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {
+//        ConcertListResponse concertListResponse = concertService.searchConcert(keyword, pageable);
+//        return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", concertListResponse));
+//    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertList(@PageableDefault Pageable pageable) {
