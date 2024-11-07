@@ -1,4 +1,4 @@
-package com.sparta.elasticsearch.service;
+package com.eatpizzaquickly.concertservice.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
@@ -6,11 +6,11 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
-import com.sparta.elasticsearch.dto.SearchAutoTitleDto;
-import com.sparta.elasticsearch.dto.SearchConcertResponseDto;
-import com.sparta.elasticsearch.dto.response.SearchAutocompleteDto;
-import com.sparta.elasticsearch.dto.response.SearchConcertListDto;
-import com.sparta.elasticsearch.entity.ConcertSearch;
+import com.eatpizzaquickly.concertservice.dto.SearchAutoTitleDto;
+import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
+import com.eatpizzaquickly.concertservice.dto.response.SearchAutocompleteDto;
+import com.eatpizzaquickly.concertservice.dto.response.SearchConcertListDto;
+import com.eatpizzaquickly.concertservice.entity.ConcertSearch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class SearchService {
             MultiMatchQuery matchQueryWithPhrasePrefix = MultiMatchQuery.of(m -> m
                     .query(query)
                     .fields("title^2", "artists")                         // title과 artists 필드 포함
-                    .type(co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType.PhrasePrefix) // 접두사 일치
+                    .type(TextQueryType.PhrasePrefix) // 접두사 일치
             );
 
             // BoolQuery 구성

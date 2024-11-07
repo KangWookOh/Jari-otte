@@ -1,4 +1,4 @@
-package com.sparta.elasticsearch.entity;
+package com.eatpizzaquickly.concertservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

@@ -1,6 +1,6 @@
-package com.sparta.elasticsearch.dto.response;
+package com.eatpizzaquickly.concertservice.dto.response;
 
-import com.sparta.elasticsearch.dto.SearchConcertResponseDto;
+import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
