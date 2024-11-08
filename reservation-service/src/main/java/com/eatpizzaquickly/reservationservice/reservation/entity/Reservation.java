@@ -34,6 +34,7 @@ public class Reservation {
     private Long seatId;
 
     private Long concertId;
+    private Long hostId;
 
     @Builder
     public Reservation(int price, Long userId, Long seatId, ReservationStatus reservationStatus, Long concertId) {
