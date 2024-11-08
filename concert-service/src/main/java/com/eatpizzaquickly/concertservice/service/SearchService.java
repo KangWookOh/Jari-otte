@@ -5,7 +5,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.json.JsonData;
 import com.eatpizzaquickly.concertservice.dto.SearchAutoTitleDto;
 import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
 import com.eatpizzaquickly.concertservice.dto.response.SearchAutocompleteDto;
@@ -117,17 +116,29 @@ public class SearchService {
 
             // 날짜 필터 추가 (startDate와 endDate가 모두 존재할 경우에만 필터 적용)
             if (startDate != null && endDate != null) {
-                // LocalDate를 시작일의 처음 시간과 종료일의 마지막 시간으로 변환 후 UTC로 변환
-                Instant startDateTime = startDate.atStartOfDay().toInstant(ZoneOffset.UTC);
-                Instant endDateTime = endDate.atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
+                // 시작일과 종료일을 UTC 시간의 ISO-8601 문자열로 변환
+                String startDateTime = startDate.atStartOfDay().toInstant(ZoneOffset.UTC).toString();
+                String endDateTime = endDate.atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toString();
 
-                // RangeQuery 설정
-                RangeQuery dateRangeFilter = RangeQuery.of(r -> r
-                        .field("startDate")
-                        .gte(JsonData.of(startDateTime.toString()))  // JsonData로 변환하여 ISO-8601 형식으로 전달
-                        .lte(JsonData.of(endDateTime.toString()))    // JsonData로 변환하여 ISO-8601 형식으로 전달
-                );
-                filters.add(Query.of(q -> q.range(dateRangeFilter)));
+                // DateRangeQuery 생성
+                DateRangeQuery dateRangeQuery = new DateRangeQuery.Builder()
+                        .field("startDate")        // 필드 지정
+                        .gte(startDateTime)        // 시작 시간
+                        .lte(endDateTime)          // 종료 시간
+                        .build();
+
+                // RangeQuery 생성 및 DateRangeQuery 추가
+                RangeQuery rangeQuery = new RangeQuery.Builder()
+                        .date(dateRangeQuery)      // DateRangeQuery를 RangeQuery에 추가
+                        .build();
+
+                // Query.Builder를 사용하여 RangeQuery 추가
+                Query rangeQueryWrapper = new Query.Builder()
+                        .range(rangeQuery)
+                        .build();
+
+                // 필터 리스트에 추가
+                filters.add(rangeQueryWrapper);
             }
 
             // Bool 쿼리 구성
