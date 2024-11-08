@@ -5,18 +5,20 @@ import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.eatpizzaquickly.concertservice.controller.SearchTermController;
 import com.eatpizzaquickly.concertservice.dto.SearchAutoTitleDto;
 import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
 import com.eatpizzaquickly.concertservice.dto.response.SearchAutocompleteDto;
 import com.eatpizzaquickly.concertservice.dto.response.SearchConcertListDto;
 import com.eatpizzaquickly.concertservice.entity.ConcertSearch;
+import com.eatpizzaquickly.concertservice.repository.SearchTermRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SearchService {
+    private final SearchTermRepository searchTermRepository;
     private final ElasticsearchClient elasticsearchClient;
 
     /* 자동 완성 기능 구현 (오타 허용 및 부분 일치) */
@@ -175,5 +178,11 @@ public class SearchService {
         } catch (IOException e) {
             throw new RuntimeException("검색 쿼리 실패", e);
         }
+    }
+
+    /* 콘서트 생성 될때 인덱스에 저장 */
+    public void saveIndex(Long concertId, String title, List<String> artists, LocalDateTime startDate, LocalDateTime endDate) {
+        ConcertSearch concertSearch = new ConcertSearch(concertId, title, artists, startDate, endDate);
+        searchTermRepository.save(concertSearch);
     }
 }
