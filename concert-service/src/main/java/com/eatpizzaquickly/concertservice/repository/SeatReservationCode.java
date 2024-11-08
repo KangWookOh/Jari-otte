@@ -1,6 +1,6 @@
 package com.eatpizzaquickly.concertservice.repository;
 
-import com.eatpizzaquickly.concertservice.exception.SeatAlreadyReservedException;
+import com.eatpizzaquickly.concertservice.exception.detail.SeatAlreadyReservedException;
 
 public enum SeatReservationCode {
     SUCCESS(1),

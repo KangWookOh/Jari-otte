@@ -4,10 +4,12 @@ import com.eatpizzaquickly.concertservice.client.KafkaEventProducer;
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
+import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
 import com.eatpizzaquickly.concertservice.exception.NotFoundException;
+import com.eatpizzaquickly.concertservice.exception.detail.RequestLimitExceededException;
 import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
@@ -27,8 +29,20 @@ public class SeatService {
     private final ConcertRedisRepository concertRedisRepository;
     private final KafkaEventProducer kafkaEventProducer;
 
-    public SeatListResponse findSeatList(Long concertId) {
-        // Redis에 좌석 데이터가 없으면 RDB에서 다시 로드
+    public SeatListResponse findSeatList(Long concertId, Long userId) {
+        // 사용자가 "좌석 예매 중" 상태에 있는지 먼저 확인
+        if (!concertRedisRepository.isInReservation(userId)) {
+            // 허용치를 초과한 경우 대기열에 추가
+            if (concertRedisRepository.isRequestLimitExceeded()) {
+                concertRedisRepository.addToQueue(userId);
+                throw new RequestLimitExceededException();
+            }
+        }
+
+        // "좌석 예매 중" 마크
+        concertRedisRepository.markInReservation(userId);
+
+        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
         if (!concertRedisRepository.hasAvailableSeats(concertId)) {
             reloadSeatsFromDatabase(concertId);
         }
@@ -38,7 +52,6 @@ public class SeatService {
         return SeatListResponse.of(seatDtoList);
     }
 
-    //TODO: 중복된 유저가 예매하는 경우 검증
     @Transactional
     public void reserveSeat(Long userId, Long concertId, Long seatId, SeatReservationRequest request) {
 
@@ -68,6 +81,10 @@ public class SeatService {
 
             kafkaEventProducer.produceSeatReservationEvent(reservationEvent);
 
+            concertRedisRepository.removeFromReservation(userId);
+
+            processNextUserInQueue();
+
         } catch (Exception e) {
             concertRedisRepository.addSeatBackToAvailable(concertId, seatId);
             throw new RuntimeException("좌석 예약 중 오류가 발생했습니다.");
@@ -80,4 +97,16 @@ public class SeatService {
         List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
         concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
     }
+
+    public void processNextUserInQueue() {
+        if (concertRedisRepository.isQueueEmpty()) {
+            return; // 대기열이 비어있으면 아무 작업도 수행하지 않음
+        }
+
+        Long nextUserId = concertRedisRepository.getNextUserFromQueue();
+        if (nextUserId != null) {
+            concertRedisRepository.markInReservation(nextUserId);
+        }
+    }
+
 }
