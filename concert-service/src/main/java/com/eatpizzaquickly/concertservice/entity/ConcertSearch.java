@@ -1,4 +1,4 @@
-package com.sparta.elasticsearch.entity;
+package com.eatpizzaquickly.concertservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,13 +31,13 @@ public class ConcertSearch {
     private List<String> artists; // 아티스트
 
     @Field(type = FieldType.Date, format = { DateFormat.strict_date_optional_time, DateFormat.epoch_millis })
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime startDate;
 
     @Field(type = FieldType.Date, format = { DateFormat.strict_date_optional_time, DateFormat.epoch_millis })
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endDate;

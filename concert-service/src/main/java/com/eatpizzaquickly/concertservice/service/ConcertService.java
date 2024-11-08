@@ -85,11 +85,12 @@ public class ConcertService {
         return ConcertDetailResponse.from(concert, concert.getVenue(), availableSeatCount);
     }
 
-    public ConcertListResponse searchConcert(String keyword, Pageable pageable) {
-        Page<Concert> concerts = concertRepository.searchByTitleOrArtists(keyword, pageable);
-        List<ConcertSimpleDto> concertSimpleDtoList = concerts.map(ConcertSimpleDto::from).toList();
-        return ConcertListResponse.of(concertSimpleDtoList);
-    }
+    // 삭제
+//    public ConcertListResponse searchConcert(String keyword, Pageable pageable) {
+//        Page<Concert> concerts = concertRepository.searchByTitleOrArtists(keyword, pageable);
+//        List<ConcertSimpleDto> concertSimpleDtoList = concerts.map(ConcertSimpleDto::from).toList();
+//        return ConcertListResponse.of(concertSimpleDtoList);
+//    }
 
     @Transactional
     public void deleteConcert(Long concertId) {

@@ -29,12 +29,14 @@ spring:
         format_sql: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:19092, localhost:19093, localhost:19094
     topic:
       payment-events: payment-events
       reservation-events: reservation-events
+      reservation:
+        created: "seat.reservation.created"
     consumer:
-      group-id: notification-group
+      group-id: reservation-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:

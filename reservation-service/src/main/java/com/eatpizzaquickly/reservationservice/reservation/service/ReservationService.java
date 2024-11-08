@@ -7,7 +7,11 @@ import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationRes
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReservationService {
     private final ReservationRepository reservationRepository;
+    private final ObjectMapper objectMapper;
 
+    @KafkaListener(
+            topics = "${spring.kafka.topic.reservation.created}", groupId = "${spring.kafka.consumer.group-id}"
+    )
     @Transactional
-    public PostReservationResponse createReservation(PostReservationRequest request) {
+    public PostReservationResponse createReservation(String message) throws JsonProcessingException {
+
+        PostReservationRequest request = objectMapper.readValue(message, PostReservationRequest.class);
 
         // 엔티티 변환
         Reservation reservation = Reservation.builder()
