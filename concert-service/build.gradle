@@ -73,7 +73,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
     // elasticsearch java Clients
-    implementation 'co.elastic.clients:elasticsearch-java:7.17.25'
+    implementation 'co.elastic.clients:elasticsearch-java:8.15.3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
