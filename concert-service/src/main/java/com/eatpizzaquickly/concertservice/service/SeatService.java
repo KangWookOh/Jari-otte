@@ -9,9 +9,11 @@ import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
 import com.eatpizzaquickly.concertservice.exception.NotFoundException;
+import com.eatpizzaquickly.concertservice.exception.detail.InvalidReservationFlowException;
 import com.eatpizzaquickly.concertservice.exception.detail.RequestLimitExceededException;
 import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
+import com.eatpizzaquickly.concertservice.repository.QueueRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,33 +29,36 @@ public class SeatService {
     private final ConcertRepository concertRepository;
     private final SeatRepository seatRepository;
     private final ConcertRedisRepository concertRedisRepository;
+    private final QueueRedisRepository queueRedisRepository;
     private final KafkaEventProducer kafkaEventProducer;
 
     public SeatListResponse findSeatList(Long concertId, Long userId) {
         // 사용자가 "좌석 예매 중" 상태에 있는지 먼저 확인
-        if (!concertRedisRepository.isInReservation(userId)) {
-            // 허용치를 초과한 경우 대기열에 추가
-            if (concertRedisRepository.isRequestLimitExceeded()) {
-                concertRedisRepository.addToQueue(userId);
-                throw new RequestLimitExceededException();
-            }
+        if (queueRedisRepository.isInReservation(concertId, userId)) {
+            return fetchSeatList(concertId);
+        }
+
+        if (queueRedisRepository.isRequestLimitExceeded(concertId)) {
+            queueRedisRepository.addToQueue(concertId, userId);
+            throw new RequestLimitExceededException(concertId);
         }
 
         // "좌석 예매 중" 마크
-        concertRedisRepository.markInReservation(userId);
+        queueRedisRepository.markInReservation(concertId, userId);
 
         // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
         if (!concertRedisRepository.hasAvailableSeats(concertId)) {
             reloadSeatsFromDatabase(concertId);
         }
 
-        List<Seat> seatList = seatRepository.findByConcertId(concertId);
-        List<SeatDto> seatDtoList = seatList.stream().map(SeatDto::from).toList();
-        return SeatListResponse.of(seatDtoList);
+        return fetchSeatList(concertId);
     }
 
     @Transactional
     public void reserveSeat(Long userId, Long concertId, Long seatId, SeatReservationRequest request) {
+        if (!queueRedisRepository.isInReservation(concertId, userId)) {
+            throw new InvalidReservationFlowException();
+        }
 
         // Redis 의 Lua script 를 이용한 원자적 좌석 예약 처리
         concertRedisRepository.reserveSeat(concertId, seatId);
@@ -81,32 +86,43 @@ public class SeatService {
 
             kafkaEventProducer.produceSeatReservationEvent(reservationEvent);
 
-            concertRedisRepository.removeFromReservation(userId);
+            queueRedisRepository.removeFromReservation(concertId, userId);
 
-            processNextUserInQueue();
+            processNextUserInQueue(concertId);
 
         } catch (Exception e) {
             concertRedisRepository.addSeatBackToAvailable(concertId, seatId);
+            queueRedisRepository.markInReservation(concertId, userId);
             throw new RuntimeException("좌석 예약 중 오류가 발생했습니다.");
         }
     }
 
 
-    public void reloadSeatsFromDatabase(Long concertId) {
+    private void reloadSeatsFromDatabase(Long concertId) {
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
         List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
         concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
     }
 
-    public void processNextUserInQueue() {
-        if (concertRedisRepository.isQueueEmpty()) {
+    private void processNextUserInQueue(Long concertId) {
+        if (queueRedisRepository.isQueueEmpty(concertId)) {
             return; // 대기열이 비어있으면 아무 작업도 수행하지 않음
         }
 
-        Long nextUserId = concertRedisRepository.getNextUserFromQueue();
+        Long nextUserId = queueRedisRepository.getNextUserFromQueue(concertId);
         if (nextUserId != null) {
-            concertRedisRepository.markInReservation(nextUserId);
+            queueRedisRepository.markInReservation(concertId, nextUserId);
         }
     }
 
+    private SeatListResponse fetchSeatList(Long concertId) {
+        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
+        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
+            reloadSeatsFromDatabase(concertId);
+        }
+
+        List<Seat> seatList = seatRepository.findByConcertId(concertId);
+        List<SeatDto> seatDtoList = seatList.stream().map(SeatDto::from).toList();
+        return SeatListResponse.of(seatDtoList);
+    }
 }
