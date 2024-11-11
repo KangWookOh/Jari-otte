@@ -1,5 +1,7 @@
 package com.eatpizzaquickly.concertservice.repository;
 
+import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
+import com.eatpizzaquickly.concertservice.exception.detail.RedisException;
 import com.eatpizzaquickly.concertservice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RScoredSortedSet;
@@ -9,9 +11,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Repository
