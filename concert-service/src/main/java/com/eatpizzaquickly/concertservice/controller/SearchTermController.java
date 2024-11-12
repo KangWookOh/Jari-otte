@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/v1/concerts/Search")
+@RequestMapping("/api/v1/concerts/search")
 @RequiredArgsConstructor
 public class SearchTermController {
     private final SearchService searchService;

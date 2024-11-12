@@ -16,8 +16,9 @@ public class SeatController {
     private final SeatService seatService;
 
     @GetMapping("/{concertId}/seats")
-    public ResponseEntity<ApiResponse<SeatListResponse>> getSeatList(@PathVariable Long concertId) {
-        SeatListResponse seatListResponse = seatService.findSeatList(concertId);
+    public ResponseEntity<ApiResponse<SeatListResponse>> getSeatList(@PathVariable Long concertId,
+                                                                     @RequestHeader("X-Authenticated-User") Long userId) {
+        SeatListResponse seatListResponse = seatService.findSeatList(concertId, userId);
         return ResponseEntity.ok(ApiResponse.success("좌석 조회 성공", seatListResponse));
     }
 

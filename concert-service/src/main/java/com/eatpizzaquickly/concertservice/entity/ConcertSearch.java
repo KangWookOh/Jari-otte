@@ -18,16 +18,17 @@ import java.util.List;
 @Document(indexName = "concerts")
 @NoArgsConstructor // 기본 생성자 추가
 @Getter
-@Setting
+@Setting(settingPath = "settings/settings.json")
+@Mapping(mappingPath = "settings/mappings.json")
 public class ConcertSearch {
     @Id
     @Field(type = FieldType.Long)
     private Long concertId;  // Concert ID를 Elasticsearch Document ID로 사용
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, analyzer = "nori_edge_ngram_analyzer", searchAnalyzer = "nori_analyzer")
     private String title;  // 검색할 수 있도록 텍스트 타입으로 설정
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, analyzer = "nori_edge_ngram_analyzer", searchAnalyzer = "nori_analyzer")
     private List<String> artists; // 아티스트
 
     @Field(type = FieldType.Date, format = { DateFormat.strict_date_optional_time, DateFormat.epoch_millis })

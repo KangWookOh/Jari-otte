@@ -5,7 +5,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.eatpizzaquickly.concertservice.controller.SearchTermController;
 import com.eatpizzaquickly.concertservice.dto.SearchAutoTitleDto;
 import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
 import com.eatpizzaquickly.concertservice.dto.response.SearchAutocompleteDto;
@@ -83,6 +82,10 @@ public class SearchService {
                         // 시작하지 않는 경우는 score 기준 정렬 유지
                         return 0;
                     })
+                    // 중복 제거
+                    .distinct()
+                    // 최대 5개만 선택
+                    .limit(5)
                     .collect(Collectors.toList());
 
             // 결과 반환
@@ -112,6 +115,12 @@ public class SearchService {
                     .query(query)                                   // 사용자가 입력한 검색어
                     .fields("title^2", "artists")    // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
                     .type(TextQueryType.PhrasePrefix)               // phrase_prefix 타입으로 설정하여 접두사 일치 허용
+            );
+
+            // Wildcard Query 추가: artists 필드에 대해 중간에 포함된 텍스트도 매칭
+            WildcardQuery wildcardQuery = WildcardQuery.of(w -> w
+                    .field("artists")
+                    .value("*" + query + "*")  // 검색어가 포함된 부분 일치 허용
             );
 
             // BoolQuery에 추가할 필터 리스트 생성
@@ -149,6 +158,7 @@ public class SearchService {
             BoolQuery boolQuery = BoolQuery.of(b -> b
                     .should(Query.of(q -> q.multiMatch(matchQueryWithFuzziness)))        // 첫 번째 쿼리: 오타 허용
                     .should(Query.of(q -> q.multiMatch(matchQueryWithPhrasePrefix)))    // 두 번째 쿼리: 접두사 일치
+                    .should(Query.of(q -> q.wildcard(wildcardQuery)))                   // Wildcard 쿼리 추가
                     .filter(filters)                                                    // 필터 조건 추가 (필터가 있을 경우에만 적용)
             );
 
