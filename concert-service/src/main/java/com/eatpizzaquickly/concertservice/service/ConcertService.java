@@ -85,6 +85,11 @@ public class ConcertService {
         Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
         increaseViewCount(concertId);
 
+        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
+        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
+            reloadSeatsFromDatabase(concertId);
+        }
+
         int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
 
         return ConcertDetailResponse.from(concert, concert.getVenue(), availableSeatCount);
@@ -116,7 +121,14 @@ public class ConcertService {
         return concerts.stream().map(ConcertSimpleDto::from).toList();
     }
 
-    public void increaseViewCount(Long concertId) {
+    private void increaseViewCount(Long concertId) {
         concertRedisRepository.increaseViewCount(concertId);
     }
+
+    private void reloadSeatsFromDatabase(Long concertId) {
+        List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
+        List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
+        concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
+    }
+
 }

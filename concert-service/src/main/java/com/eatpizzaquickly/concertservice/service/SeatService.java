@@ -69,13 +69,7 @@ public class SeatService {
                     .orElseThrow(() -> new NotFoundException("좌석이 존재하지 않습니다."));
             seat.changeReserved(true);
 
-            // Concert 조회 및 잔여 좌석 수 감소
-            Concert concert = concertRepository.findById(concertId)
-                    .orElseThrow(() -> new NotFoundException("콘서트가 존재하지 않습니다."));
-
-            //TODO : 스케쥴링 혹은 특점 시점에만 반영하기
-//            int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
-//            concert.updateSeatCount(availableSeatCount);
+//            concertRepository.findById(concertId).orElseThrow(() -> new NotFoundException("콘서트가 존재하지 않습니다."));
 
             SeatReservationEvent reservationEvent = SeatReservationEvent.builder()
                     .userId(userId)
@@ -124,5 +118,19 @@ public class SeatService {
         List<Seat> seatList = seatRepository.findByConcertId(concertId);
         List<SeatDto> seatDtoList = seatList.stream().map(SeatDto::from).toList();
         return SeatListResponse.of(seatDtoList);
+    }
+
+    // Redis 상태를 DB로 동기화
+    @Transactional
+    public void syncAvailableSeatsToDatabase(Long concertId) {
+        int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
+
+        // DB 에서 Concert 엔티티 조회
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new NotFoundException("콘서트를 찾을 수 없습니다."));
+
+        // 잔여 좌석 수 반영
+        concert.updateSeatCount(availableSeatCount);
+        concertRepository.save(concert); // 업데이트된 좌석 수 저장
     }
 }
