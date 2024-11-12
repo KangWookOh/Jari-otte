@@ -89,7 +89,7 @@ public class PaymentController {
         return paymentService.getPaymentsByStatus(settlementStatus, payStatus, chunk, currentPage);
     }
 
-    @PatchMapping
+    @PutMapping
     ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments) {
         paymentService.updatePayments(payments);
         return ResponseEntity.ok().body("update successfully");

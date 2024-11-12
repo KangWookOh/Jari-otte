@@ -38,8 +38,8 @@ spring:
         created: "seat.reservation.created"
   elasticsearch:
     uris: localhost:9200
-    username: jari
-    password: jariotte1123
+    username: "jari"
+    password: "jariotte1123"
 
 cloud:
   aws:
