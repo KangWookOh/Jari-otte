@@ -4,14 +4,17 @@ import com.eatpizzaquickly.reservationservice.common.config.TossPaymentConfig;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
 import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
+import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentConfirmRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.TossPaymentResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.UserResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayMethod;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
+import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.payment.exception.*;
 import com.eatpizzaquickly.reservationservice.payment.kafka.PaymentEventProducer;
 import com.eatpizzaquickly.reservationservice.payment.repository.PaymentRepository;
@@ -19,19 +22,18 @@ import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -176,6 +178,7 @@ public class PaymentService {
             throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
     public GetPaymentResponse tossPaymentFail(String code, String message, String orderId) {
         Payment payment = paymentRepository.findByPayUid(orderId)
                 .orElseThrow(() -> new RuntimeException("결제를 찾을 수 없습니다."));
@@ -287,5 +290,27 @@ public class PaymentService {
         }
 
         return response.getBody();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentPage) {
+        Pageable pageable = PageRequest.of(currentPage, chunk);
+        Page<Payment> payments = paymentRepository.findBySettlementStatusAndPayStatusOrderByIdAsc(settlementStatus, payStatus, pageable);
+        return payments.getContent().stream()
+                .map(PaymentResponseDto::from)
+                .toList();
+    }
+
+    @Transactional
+    public void updatePayments(List<PaymentRequestDto> payments) {
+        List<Payment> paymentList = payments.stream()
+                .map(paymentRequestDto -> {
+                    Payment payment = paymentRepository.findById(paymentRequestDto.getId())
+                            .orElseThrow(() -> new PaymentNotFoundException("결제 내역이 없습니다."));
+                    payment.setSettlementStatus(paymentRequestDto.getSettlementStatus());
+                    return payment;
+                }).toList();
+
+        paymentRepository.saveAll(paymentList);
     }
 }

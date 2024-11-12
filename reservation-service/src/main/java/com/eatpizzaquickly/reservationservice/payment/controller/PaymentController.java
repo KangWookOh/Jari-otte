@@ -1,8 +1,12 @@
 package com.eatpizzaquickly.reservationservice.payment.controller;
 
+import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
+import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelException;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentSessionExpiredException;
 import com.eatpizzaquickly.reservationservice.payment.service.PaymentService;
@@ -10,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -71,6 +77,22 @@ public class PaymentController {
         } catch (Exception e) {
             throw new PaymentCancelException("결제 취소 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    @GetMapping
+    List<PaymentResponseDto> getPaymentsByStatus(
+            @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
+            @RequestParam(name = "payStatus") PayStatus payStatus,
+            @RequestParam(name = "size") int chunk,
+            @RequestParam(name = "page") int currentPage
+    ) {
+        return paymentService.getPaymentsByStatus(settlementStatus, payStatus, chunk, currentPage);
+    }
+
+    @PatchMapping
+    ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments) {
+        paymentService.updatePayments(payments);
+        return ResponseEntity.ok().body("update successfully");
     }
 
     @GetMapping("/payment-page")

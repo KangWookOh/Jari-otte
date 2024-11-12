@@ -23,4 +23,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Page<Payment> getPaidPaymentsOlderThanSevenDays(@Param("paid") PayStatus paid, @Param("status") SettlementStatus status, @Param("sevenDays") LocalDateTime sevenDays, Pageable pageable);
 
     Page<Payment> findBySettlementStatus(SettlementStatus settlementStatus, Pageable pageable);
+
+    Page<Payment> findBySettlementStatusAndPayStatusOrderByIdAsc(SettlementStatus settlementStatus, PayStatus payStatus,Pageable pageable);
 }
