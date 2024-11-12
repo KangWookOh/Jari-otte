@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long>, ConcertCustomRepository {
@@ -16,6 +18,9 @@ public interface ConcertRepository extends JpaRepository<Concert, Long>, Concert
     Optional<Concert> findByIdWithVenue(@Param("id") Long id);
 
     Page<Concert> findAllByCategory(Category name, Pageable pageable);
+
+    List<Concert> findByEndDateBefore(LocalDate endDate);
+
 
     // 삭제
 //    @Query("SELECT c FROM Concert c WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
