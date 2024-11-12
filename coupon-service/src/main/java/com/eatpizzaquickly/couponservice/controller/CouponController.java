@@ -33,36 +33,14 @@ public class CouponController {
 
     @PostMapping("/{couponId}/issue-all")
     public ResponseEntity<ApiResponse<Void>> issueCoupon(@PathVariable("couponId") Long couponId) {
-        // 기본 검증만 수행
-        Coupon coupon = couponService.validateBulkCoupon(couponId);
-
-        // 검증 통과 후 이벤트 발행
-        CouponEvent event = CouponEvent.builder()
-                .eventType("BULK_ISSUE")
-                .couponId(couponId)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        eventProducer.sendCouponEvent(event);
-
+        couponService.issueCouponToAllUsers(couponId);
         return ResponseEntity.ok(ApiResponse.success("전체 사용자에게 쿠폰 발급이 요청되었습니다. 잠시 후 발급이 완료됩니다."));
     }
     @PostMapping("/issue")
     public ResponseEntity<ApiResponse<Void>> issueCoupon(
             @RequestHeader("X-Authenticated-User") Long userId,
             @RequestBody CouponRequestDto couponRequestDto) {
-        // 기본 검증만 수행
-        Coupon coupon = couponService.validateSingleCoupon(userId, couponRequestDto.getCouponCode());
-
-        // 검증 통과 후 이벤트 발행
-        CouponEvent event = CouponEvent.builder()
-                .eventType("SINGLE_ISSUE")
-                .userId(userId)
-                .couponCode(couponRequestDto.getCouponCode())
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        eventProducer.sendCouponEvent(event);
+        couponService.issueCouponToUser(userId,couponRequestDto.getCouponCode());
 
         return ResponseEntity.ok(ApiResponse.success("쿠폰 발급이 요청되었습니다. 잠시 후 발급이 완료됩니다."));
     }

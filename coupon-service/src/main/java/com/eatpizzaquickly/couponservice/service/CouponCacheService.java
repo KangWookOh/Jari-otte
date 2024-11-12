@@ -34,6 +34,15 @@ public class CouponCacheService {
                 .orElseThrow(() -> new CouponNotFoundException("쿠폰이 존재하지 않습니다"));
     }
 
+    // 새로 추가된 메서드: 캐시에 쿠폰 저장
+    public void saveCouponToCache(Coupon coupon) {
+        Cache couponCache = cacheManager.getCache(COUPON_CACHE);
+        if (couponCache != null) {
+            couponCache.put(coupon.getCouponCode(), coupon); // 쿠폰 코드 기준으로 캐시에 저장
+            couponCache.put(coupon.getId(), coupon);          // 쿠폰 ID 기준으로도 저장
+        }
+    }
+
     @Cacheable(value = "coupon", key = "#couponId")
     public Coupon findCouponById(Long couponId) {
         return couponsRepository.findById(couponId)
