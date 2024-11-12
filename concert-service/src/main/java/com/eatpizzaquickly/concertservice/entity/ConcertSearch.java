@@ -19,6 +19,7 @@ import java.util.List;
 @NoArgsConstructor // 기본 생성자 추가
 @Getter
 @Setting(settingPath = "settings/settings.json")
+@Mapping(mappingPath = "settings/mappings.json")
 public class ConcertSearch {
     @Id
     @Field(type = FieldType.Long)
