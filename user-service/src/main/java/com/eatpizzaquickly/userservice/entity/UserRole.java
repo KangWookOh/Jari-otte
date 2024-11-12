@@ -5,7 +5,7 @@ import jakarta.ws.rs.NotFoundException;
 import java.util.Arrays;
 
 public enum UserRole {
-    ADMIN,USER;
+    ADMIN, HOST, USER;
 
     public static UserRole of(String role) {
         return Arrays.stream(UserRole.values())

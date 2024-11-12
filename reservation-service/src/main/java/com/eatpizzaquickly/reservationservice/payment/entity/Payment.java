@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "payments")
 @Getter
 @NoArgsConstructor
-public class Payment {
+public class Payment extends Timestamped {
     @Column(name = "pay_id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,9 +32,13 @@ public class Payment {
 
     private String paymentKey;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
+
+    @Column(name = "settlement_status")
+    @Enumerated(EnumType.STRING)
+    private SettlementStatus settlementStatus = SettlementStatus.UNSETTLED;
 
     public Payment(String pay_uid, Long price, String payInfo, PayMethod payMethod, PayStatus payStatus, Reservation reservation) {
         this.payUid = pay_uid;
@@ -51,5 +55,9 @@ public class Payment {
 
     public void setPaymentKey(String paymentKey) {
         this.paymentKey = paymentKey;
+    }
+
+    public void setSettlementStatus(SettlementStatus settlementStatus) {
+        this.settlementStatus = settlementStatus;
     }
 }

@@ -54,6 +54,8 @@ public class Concert {
     @JoinColumn(name = "venue_id")
     private Venue venue;
 
+    private Long hostId;
+
     private Boolean deleted = false;
 
     @Builder
@@ -66,7 +68,8 @@ public class Concert {
                     LocalDateTime startDate,
                     LocalDateTime endDate,
                     List<String> artists,
-                    Venue venue) {
+                    Venue venue,
+                    Long hostId) {
         this.title = title;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
@@ -77,12 +80,14 @@ public class Concert {
         this.endDate = endDate;
         this.artists = artists;
         this.venue = venue;
+        this.hostId = hostId;
     }
 
     public void decreaseSeatCount() {
         this.seatCount--;
     }
 
-    public void updateSeatCount(int seatCount){
-        this.seatCount = seatCount;}
+    public void updateSeatCount(int seatCount) {
+        this.seatCount = seatCount;
+    }
 }
