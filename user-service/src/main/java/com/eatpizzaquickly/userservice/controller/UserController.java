@@ -2,9 +2,9 @@ package com.eatpizzaquickly.userservice.controller;
 
 
 import com.eatpizzaquickly.userservice.common.advice.ApiResponse;
+import com.eatpizzaquickly.userservice.dto.HostPointRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
-import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.service.EmailService;
 import com.eatpizzaquickly.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -27,7 +27,7 @@ public class UserController {
             @Valid @RequestBody UserRequestDto userRequestDto,
             @RequestParam(name = "token") String token
     ) {
-        UserResponseDto user = userService.signUp(userRequestDto,token);
+        UserResponseDto user = userService.signUp(userRequestDto, token);
         return ResponseEntity.ok(ApiResponse.success("회원가입 성공", user));
     }
 
@@ -57,7 +57,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@RequestHeader("X-Authenticated-User") Long userId,
                                                                    @Valid @RequestBody UserRequestDto userRequestDto) {
         UserResponseDto user = userService.updateUser(userId, userRequestDto);
-      
+
         return ResponseEntity.ok(
                 ApiResponse.success("수정 성공 ", user)
         );
@@ -96,5 +96,9 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("인증번호가 메일로 발송되었습니다."));
     }
 
-    //카카오 로그인
+    @PostMapping("/addpoints")
+    public ResponseEntity<String> addPointsToHost(@RequestBody List<HostPointRequestDto> hostpoints) {
+        userService.addPointsToHosts(hostpoints);
+        return ResponseEntity.ok().body("성공");
+    }
 }

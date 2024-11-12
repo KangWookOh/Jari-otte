@@ -2,7 +2,6 @@ package com.eatpizzaquickly.concertservice.controller;
 
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
-import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
@@ -26,8 +25,11 @@ public class ConcertController {
 
     // 관리자 권한 필요
     @PostMapping
-    public ResponseEntity<ApiResponse<ConcertDetailResponse>> createConcert(@RequestBody ConcertCreateRequest concertCreateRequest) {
-        ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest);
+    public ResponseEntity<ApiResponse<ConcertDetailResponse>> createConcert(
+            @RequestBody ConcertCreateRequest concertCreateRequest,
+            @RequestParam(name = "host") Long hostId
+    ) {
+        ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest, hostId);
         return ResponseEntity.ok(ApiResponse.success("공연 생성 성공", concertDetailResponse));
     }
 
@@ -37,6 +39,12 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertDetailResponse));
     }
 
+    @GetMapping("/{concertId}/host")
+    public Long findHostIdByConcertId(@PathVariable(name = "concertId") Long concertId) {
+        return concertService.findHostIdByConcertId(concertId);
+    }
+
+    ;
     // 삭제
 //    @GetMapping("/search")
 //    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertSearchList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {

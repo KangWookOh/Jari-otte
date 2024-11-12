@@ -3,18 +3,20 @@ package com.eatpizzaquickly.userservice.service;
 
 import com.eatpizzaquickly.userservice.common.config.JwtUtils;
 import com.eatpizzaquickly.userservice.common.config.PasswordEncoder;
+import com.eatpizzaquickly.userservice.dto.HostPointRequestDto;
 import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
+import com.eatpizzaquickly.userservice.entity.HostBalance;
 import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.entity.UserRole;
 import com.eatpizzaquickly.userservice.exception.*;
+import com.eatpizzaquickly.userservice.repository.HostBalanceRepository;
 import com.eatpizzaquickly.userservice.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.cache.annotation.Cacheable;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final HostBalanceRepository hostBalanceRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final RedisTemplate<String, String> redisTemplate;
@@ -129,7 +132,7 @@ public class UserService {
 
     @Cacheable(value = "userById", key = "#id", cacheManager = "redisCacheManager")
     public UserResponseDto findById(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("유저를 찾을 수 없습니다"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다"));
         return UserResponseDto.from(user);
     }
 
@@ -188,5 +191,26 @@ public class UserService {
                 TimeUnit.MILLISECONDS
         );
         return accessToken;
+    }
+
+    @Transactional
+    public void addPointsToHosts(List<HostPointRequestDto> hostpoints) {
+        for (HostPointRequestDto hostPoint : hostpoints) {
+            Long hostId = hostPoint.getHostId();
+            Long points = hostPoint.getPoints();
+
+            Optional<HostBalance> optionalHostBalance = hostBalanceRepository.findByHostId(hostId);
+
+            HostBalance hostBalance = optionalHostBalance
+                    .map(balance -> {
+                        balance.addBalance(points);
+                        return balance;
+                    }).orElse(HostBalance.builder()
+                            .hostId(hostId)
+                            .balance(points)
+                            .build());
+
+            hostBalanceRepository.save(hostBalance);
+        }
     }
 }

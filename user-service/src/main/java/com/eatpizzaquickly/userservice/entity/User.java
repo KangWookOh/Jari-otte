@@ -35,6 +35,10 @@ public class User {
     @Column(nullable = true, unique = true)
     private Long kakaoId;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "balance_id")
+    private HostBalance hostBalances;
+
     @Builder
     public User(String email, String password, String nickname, UserRole userRole, Long kakaoId) {
         this.email = email;

@@ -13,12 +13,8 @@ import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
 import com.eatpizzaquickly.concertservice.repository.VenueRepository;
-import com.eatpizzaquickly.concertservice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RMapCache;
-import org.redisson.api.RScoredSortedSet;
-import org.redisson.api.RSet;
-import org.redisson.api.RedissonClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -40,11 +36,12 @@ public class ConcertService {
     private final ConcertRedisRepository concertRedisRepository;
 
     @Transactional
-    public ConcertDetailResponse saveConcert(ConcertCreateRequest concertCreateRequest) {
+    public ConcertDetailResponse saveConcert(ConcertCreateRequest concertCreateRequest, Long hostId) {
         Venue venue = venueRepository.findById(concertCreateRequest.getVenueId()).orElseThrow(NotFoundException::new);
 
         Concert concert = Concert.builder()
                 .title(concertCreateRequest.getTitle())
+                .hostId(hostId)
                 .description(concertCreateRequest.getDescription())
                 .artists(concertCreateRequest.getArtists())
                 .startDate(concertCreateRequest.getStartDate())
@@ -125,10 +122,19 @@ public class ConcertService {
         concertRedisRepository.increaseViewCount(concertId);
     }
 
+
+    @Transactional(readOnly = true)
+    public Long findHostIdByConcertId(Long concertId) {
+        log.info("콘서트 ID : {}",concertId);
+        Concert concert = concertRepository.findById(concertId).orElseThrow(
+                () -> new NotFoundException("콘서트가 없습니다.")
+        );
+        return concert.getHostId();
+    }
+
     private void reloadSeatsFromDatabase(Long concertId) {
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
         List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
         concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
     }
-
 }
