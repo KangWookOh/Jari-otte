@@ -29,16 +29,17 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate          # Hibernate가 스키마를 검증만 하고 변경하지 않도록 설정
+      ddl-auto: update          # Hibernate가 스키마를 검증만 하고 변경하지 않도록 설정
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:19092,localhost:19093,localhost:19094
     topic:
       coupon-events: coupon-events
+      coupon-events-email: coupon-events-email
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

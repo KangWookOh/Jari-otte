@@ -13,6 +13,7 @@ import com.eatpizzaquickly.couponservice.entity.UserCoupon;
 import com.eatpizzaquickly.couponservice.exception.*;
 import com.eatpizzaquickly.couponservice.kafka.CouponEvent;
 import com.eatpizzaquickly.couponservice.kafka.CouponEventProducer;
+import com.eatpizzaquickly.couponservice.kafka.SendCouponEmailProducer;
 import com.eatpizzaquickly.couponservice.repository.CouponsRepository;
 import com.eatpizzaquickly.couponservice.repository.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +50,6 @@ public class CouponService {
     private static final long WAIT_TIME = 3L;
     private static final long LEASE_TIME = 5L;
 
-
     private final CouponsRepository couponsRepository;
     private final UserCouponRepository userCouponRepository;
     private final UserClient userClient;
@@ -53,10 +57,9 @@ public class CouponService {
     private final CouponCacheService couponCacheService;
     private final RedissonClient redissonClient;
     private final CouponEventProducer couponEventProducer;
+    private final SendCouponEmailProducer sendCouponEmailProducer;
 
-
-
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     @CacheEvict(value = {COUPON_CACHE, USER_COUPONS_CACHE}, allEntries = true)
     public CouponResponseDto createCoupon(CouponRequestDto couponRequestDto) {
         Coupon coupon = Coupon.builder()
@@ -69,11 +72,17 @@ public class CouponService {
                 .quantity(couponRequestDto.getQuantity())
                 .expiryDate(couponRequestDto.getExpiryDate())
                 .build();
-        couponsRepository.save(coupon);
-        return CouponResponseDto.from(coupon);
+        Coupon savedCoupon = couponsRepository.save(coupon);
+        couponCacheService.saveCouponToCache(savedCoupon);
+        return CouponResponseDto.from(savedCoupon);
     }
 
-    @Transactional
+    // 중복 발급 방지 메서드
+    public boolean isCouponAlreadyIssued(Long userId, Long couponId) {
+        return userCouponRepository.existsByUserIdAndCouponId(userId, couponId);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Caching(evict = {
             @CacheEvict(value = COUPON_CACHE, key = "#couponCode"),
             @CacheEvict(value = USER_COUPONS_CACHE, key = "#userId")
@@ -88,29 +97,17 @@ public class CouponService {
                 throw new CouponLockException("쿠폰 발급 처리 중입니다. 잠시 후 다시 시도해주세요.");
             }
 
-            // 기본 검증
             UserResponseDto user = userClient.getUserById(userId).getData();
-            log.info("user:{}", user);
-            log.info("발급 대상 유저 이메일: {}", user.getEmail());
-            if (user == null) {
-                throw new UserNotFoundException("가입되지 않은 유저입니다.");
-            }
-            if (user.getEmail() == null) {
-                log.warn("사용자의 이메일이 없습니다. 사용자 ID: {}", userId);
-                throw new IllegalArgumentException("이메일이 없는 사용자에게 쿠폰을 발급할 수 없습니다.");
+            if (user == null || user.getEmail() == null) {
+                throw new UserNotFoundException("유효하지 않은 사용자입니다.");
             }
 
             Coupon coupon = couponCacheService.findCouponByCouponCode(couponCode);
-            if (coupon.getCouponType() != CouponType.LIMIT) {
-                throw new CouponTypeMissMatched("쿠폰 타입을 다시 확인 해 주세요");
+            if (coupon.getCouponType() != CouponType.LIMIT || coupon.getQuantity() <= 0) {
+                throw new CouponTypeMissMatched("쿠폰 타입 또는 수량을 다시 확인 해 주세요");
             }
 
-            if (coupon.getQuantity() <= 0) {
-                throw new CouponOutOfStockException("쿠폰 수량이 모두 소진되었습니다.");
-            }
-
-            boolean alreadyIssued = userCouponRepository.existsByUserIdAndCouponId(userId, coupon.getId());
-            if (alreadyIssued) {
+            if (isCouponAlreadyIssued(userId, coupon.getId())) {
                 throw new DuplicateCouponException("이미 발급받은 쿠폰입니다.");
             }
 
@@ -120,34 +117,36 @@ public class CouponService {
                     .expiryDate(coupon.getExpiryDate())
                     .build();
             userCouponRepository.save(userCoupon);
-
             coupon.decreaseQuantity();
             couponsRepository.save(coupon);
 
-            // 이벤트 발행 수정
-            CouponEvent event = CouponEvent.builder()
-                    .eventType("COUPON_ISSUED")
-                    .couponId(coupon.getId())
-                    .userId(userId)
-                    .email(user.getEmail())
-                    .couponCode(couponCode)
-                    .timestamp(LocalDateTime.now())
-                    .notificationMessage(String.format("%s님, [%s] 쿠폰이 발급되었습니다. \n%s까지 사용 가능합니다.",
-                            user.getNickname(),
-                            coupon.getCouponName(),
-                            coupon.getExpiryDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
-                    .build();
-            couponEventProducer.sendCouponEvent(event);
-
-            eventPublisher.publishEvent(new UserCouponsChangedEvent(this, userId));
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            try {
+                                CouponEvent event = CouponEvent.builder()
+                                        .eventType("SINGLE_ISSUE")
+                                        .couponId(coupon.getId())
+                                        .userId(userId)
+                                        .email(user.getEmail())
+                                        .couponCode(couponCode)
+                                        .timestamp(LocalDateTime.now())
+                                        .notificationMessage(String.format("%s님, [%s] 쿠폰이 발급되었습니다. %s까지 사용 가능합니다.",
+                                                user.getNickname(), coupon.getCouponName(), coupon.getExpiryDate()))
+                                        .build();
+                                couponEventProducer.sendCouponEvent(event);
+                                sendCouponEmailProducer.sendCouponEmail(event);
+                                eventPublisher.publishEvent(new UserCouponsChangedEvent(this, userId));
+                            } catch (Exception e) {
+                                log.error("쿠폰 이벤트 발행 실패: ", e);
+                            }
+                        }
+                    });
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new CouponLockException("쿠폰 발급 처리 중 인터럽트가 발생했습니다.");
-        } catch (Exception e) {
-            log.error("쿠폰 발급 중 오류가 발생했습니다. 사용자 ID: {}, 쿠폰 코드: {}. 예외: {}",
-                    userId, couponCode, e.getMessage(), e);
-            throw e;
         } finally {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
@@ -198,7 +197,7 @@ public class CouponService {
             // 각 사용자별로 이벤트 발행
             users.forEach(user -> {
                 CouponEvent event = CouponEvent.builder()
-                        .eventType("BULK_COUPON_ISSUED")
+                        .eventType("BULK_ISSUE")
                         .couponId(originalCoupon.getId())
                         .userId(user.getId())
                         .email(user.getEmail())
@@ -210,6 +209,7 @@ public class CouponService {
                                 originalCoupon.getExpiryDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
                         .build();
                 couponEventProducer.sendCouponEvent(event);
+                sendCouponEmailProducer.sendCouponEmail(event);
             });
 
             // 캐시 및 이벤트 갱신

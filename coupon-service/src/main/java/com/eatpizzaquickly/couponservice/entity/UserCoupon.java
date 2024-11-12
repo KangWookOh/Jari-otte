@@ -26,10 +26,13 @@ public class UserCoupon {
     private Long userId;  // 외래 키가 아닌 단순 사용자 식별자
 
     private Long couponId;
-
+    @Column(nullable = false)
     private Boolean isUsed = false;
 
     private LocalDate expiryDate;
+
+    private Boolean isExpired = false;  // 인덱스에 맞추기 위해 추가한 컬럼
+
 
     private LocalDateTime issueDate = LocalDateTime.now();
 

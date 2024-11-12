@@ -54,8 +54,6 @@ dependencies {
     // Resilience4j
     implementation 'io.github.resilience4j:resilience4j-spring-boot3'
 
-    // Database
-    runtimeOnly 'com.mysql:mysql-connector-j'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
