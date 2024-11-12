@@ -1,7 +1,8 @@
 package com.eatpizzaquickly.batchservice.settlement.reader;
 
-import com.eatpizzaquickly.reservationservice.payment.entity.HostPoint;
-import com.eatpizzaquickly.reservationservice.payment.repository.HostPointRepository;
+
+import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
+import com.eatpizzaquickly.batchservice.settlement.repository.HostPointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
-import static com.eatpizzaquickly.reservationservice.batch.common.BatchConstant.CHUNK_SIZE;
+import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.CHUNK_SIZE;
 
 @RequiredArgsConstructor
 @Component

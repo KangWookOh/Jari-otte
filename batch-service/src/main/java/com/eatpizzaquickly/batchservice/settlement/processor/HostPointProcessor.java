@@ -1,7 +1,8 @@
 package com.eatpizzaquickly.batchservice.settlement.processor;
 
-import com.eatpizzaquickly.reservationservice.payment.dto.request.HostPointRequestDto;
-import com.eatpizzaquickly.reservationservice.payment.entity.HostPoint;
+
+import com.eatpizzaquickly.batchservice.settlement.dto.request.HostPointRequestDto;
+import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;

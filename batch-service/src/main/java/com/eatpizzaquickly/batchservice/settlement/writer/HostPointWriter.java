@@ -1,9 +1,10 @@
 package com.eatpizzaquickly.batchservice.settlement.writer;
 
-import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
-import com.eatpizzaquickly.reservationservice.payment.dto.request.HostPointRequestDto;
-import com.eatpizzaquickly.reservationservice.payment.entity.HostPoint;
-import com.eatpizzaquickly.reservationservice.payment.repository.HostPointRepository;
+
+import com.eatpizzaquickly.batchservice.common.client.UserClient;
+import com.eatpizzaquickly.batchservice.settlement.dto.request.HostPointRequestDto;
+import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
+import com.eatpizzaquickly.batchservice.settlement.repository.HostPointRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
@@ -22,10 +23,7 @@ public class HostPointWriter {
     private final UserClient userClient;
 
     public ItemWriter<HostPoint> hostPointWriter() {
-        return HostPoint -> {
-            hostPointRepository.saveAll(HostPoint);
-            log.info("중간 결과 저장");
-        };
+        return hostPointRepository::saveAll;
     }
 
     public ItemWriter<HostPointRequestDto> hostPointTransmissionWriter() {

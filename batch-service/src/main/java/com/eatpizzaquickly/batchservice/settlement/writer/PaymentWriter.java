@@ -1,36 +1,48 @@
 package com.eatpizzaquickly.batchservice.settlement.writer;
 
-import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
-import com.eatpizzaquickly.reservationservice.payment.repository.PaymentRepository;
+
+import com.eatpizzaquickly.batchservice.common.client.PaymentClient;
+import com.eatpizzaquickly.batchservice.settlement.dto.request.PaymentRequestDto;
+import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
+import com.eatpizzaquickly.batchservice.settlement.repository.TempPaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.naming.ServiceUnavailableException;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class PaymentWriter {
-    private final PaymentRepository paymentRepository;
 
-    public ItemWriter<Payment> pointAdditionWriter() {
-        return payments -> {
-            paymentRepository.saveAll(payments);
-            log.info("포인트 추가");
-        };
+    private final PaymentClient paymentClient;
+    private final TempPaymentRepository tempPaymentRepository;
+
+    public ItemWriter<TempPayment> tempPaymentWriter() {
+        return tempPaymentRepository::saveAll;
     }
 
-    public ItemWriter<Payment> settlementSettledWriter() {
+    @Transactional
+    public ItemWriter<PaymentRequestDto> paymentWriter() {
         return payments -> {
-            paymentRepository.saveAll(payments);
-            log.info("정산 완료로 변경");
-        };
-    }
+            ResponseEntity<String> response = paymentClient.updatePayments((List<PaymentRequestDto>) payments.getItems());
 
-    public ItemWriter<Payment> paymentSettleWriter() {
-        return payments -> {
-            paymentRepository.saveAll(payments);
-            log.info("Payment Settled");
+            if (response.getStatusCode().is2xxSuccessful()) {
+                List<Long> paymentId = payments.getItems().stream()
+                        .map(PaymentRequestDto::getId)
+                        .toList();
+
+                List<TempPayment> tempPayments = tempPaymentRepository.findByPaymentIdIn(paymentId);
+                tempPaymentRepository.deleteAll();
+            } else {
+                log.error("Payment Update fail : {}", response.getStatusCode());
+                throw new ServiceUnavailableException("Payment Update Fail");
+            }
         };
     }
 }

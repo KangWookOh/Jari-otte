@@ -1,14 +1,18 @@
 package com.eatpizzaquickly.batchservice.settlement.common;
 
-import com.eatpizzaquickly.reservationservice.batch.processor.HostPointProcessor;
-import com.eatpizzaquickly.reservationservice.batch.processor.PaymentProcessor;
-import com.eatpizzaquickly.reservationservice.batch.reader.HostPointReader;
-import com.eatpizzaquickly.reservationservice.batch.reader.PaymentReader;
-import com.eatpizzaquickly.reservationservice.batch.writer.HostPointWriter;
-import com.eatpizzaquickly.reservationservice.batch.writer.PaymentWriter;
-import com.eatpizzaquickly.reservationservice.payment.dto.request.HostPointRequestDto;
-import com.eatpizzaquickly.reservationservice.payment.entity.HostPoint;
-import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
+import com.eatpizzaquickly.batchservice.settlement.Listener.JobLoggingListener;
+import com.eatpizzaquickly.batchservice.settlement.Listener.StepLoggingListener;
+import com.eatpizzaquickly.batchservice.settlement.dto.request.HostPointRequestDto;
+import com.eatpizzaquickly.batchservice.settlement.dto.request.PaymentRequestDto;
+import com.eatpizzaquickly.batchservice.settlement.dto.response.PaymentResponseDto;
+import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
+import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
+import com.eatpizzaquickly.batchservice.settlement.processor.HostPointProcessor;
+import com.eatpizzaquickly.batchservice.settlement.processor.PaymentProcessor;
+import com.eatpizzaquickly.batchservice.settlement.reader.HostPointReader;
+import com.eatpizzaquickly.batchservice.settlement.reader.PaymentReader;
+import com.eatpizzaquickly.batchservice.settlement.writer.HostPointWriter;
+import com.eatpizzaquickly.batchservice.settlement.writer.PaymentWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -20,7 +24,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import static com.eatpizzaquickly.reservationservice.batch.common.BatchConstant.CHUNK_SIZE;
+import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.CHUNK_SIZE;
+
 
 @Configuration
 @RequiredArgsConstructor
@@ -34,33 +39,49 @@ public class SettlementBatchConfig {
     private final PaymentReader paymentReader;
     private final HostPointWriter hostPointWriter;
     private final PaymentWriter paymentWriter;
+    private final JobLoggingListener jobLoggingListener;
+    private final StepLoggingListener stepLoggingListener;
 
 
     @Bean
     public Job settlementBatchJob() {
         return new JobBuilder("SettlementBatchJob", jobRepository)
+                .listener(jobLoggingListener)
                 .start(settlementStep())
                 .next(hostPointStorageStep())
                 .next(pointTransmissionStep())
                 .next(settlementSettledStep())
+                .next(updatePaymentWithTestPaymentStep())
+                .build();
+    }
+
+    public Step updatePaymentWithTestPaymentStep() {
+        return new StepBuilder("updatePaymentWithTestPaymentStep", jobRepository)
+                .<TempPayment, PaymentRequestDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(paymentReader.updatePaymentReader())
+                .processor(paymentProcessor.updatePaymentProcessor())
+                .writer(paymentWriter.paymentWriter())
+                .listener(stepLoggingListener)
                 .build();
     }
 
     public Step settlementStep() {
         return new StepBuilder("settlementStep", jobRepository)
-                .<Payment, Payment>chunk(CHUNK_SIZE, transactionManager)
+                .<PaymentResponseDto, TempPayment>chunk(CHUNK_SIZE, transactionManager)
                 .reader(paymentReader.paidPaymentReader())
                 .processor(paymentProcessor.paymentSettleProcessor())
-                .writer(paymentWriter.paymentSettleWriter())
+                .writer(paymentWriter.tempPaymentWriter())
+                .listener(stepLoggingListener)
                 .build();
     }
 
     private Step hostPointStorageStep() {
         return new StepBuilder("hostPointStorageStep", jobRepository)
-                .<Payment, HostPoint>chunk(CHUNK_SIZE, transactionManager)
+                .<TempPayment, HostPoint>chunk(CHUNK_SIZE, transactionManager)
                 .reader(paymentReader.pointAdditionReader())
                 .processor(paymentProcessor.pointAdditionProcessor())
                 .writer(hostPointWriter.hostPointWriter())
+                .listener(stepLoggingListener)
                 .build();
     }
 
@@ -75,10 +96,10 @@ public class SettlementBatchConfig {
 
     private Step settlementSettledStep() {
         return new StepBuilder("settlementSettledStep", jobRepository)
-                .<Payment, Payment>chunk(CHUNK_SIZE, transactionManager)
+                .<TempPayment, TempPayment>chunk(CHUNK_SIZE, transactionManager)
                 .reader(paymentReader.pointAdditionReader())
                 .processor(paymentProcessor.settlementSettledProcessor())
-                .writer(paymentWriter.settlementSettledWriter())
+                .writer(paymentWriter.tempPaymentWriter())
                 .build();
     }
 
