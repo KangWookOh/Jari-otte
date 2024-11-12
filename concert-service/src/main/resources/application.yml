@@ -30,7 +30,7 @@ spring:
     producer:
       retries: 3
       acks: all
-      max-in-flight-reqeusts-per-conncetion: 1
+      max-in-flight-requests-per-connection: 1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     topic:
@@ -38,8 +38,8 @@ spring:
         created: "seat.reservation.created"
   elasticsearch:
     uris: localhost:9200
-    username: root
-    password: root123
+    username: jari
+    password: jariotte1123
 
 cloud:
   aws:

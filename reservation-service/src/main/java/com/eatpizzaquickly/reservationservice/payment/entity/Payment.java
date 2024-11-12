@@ -32,7 +32,7 @@ public class Payment extends Timestamped {
 
     private String paymentKey;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 

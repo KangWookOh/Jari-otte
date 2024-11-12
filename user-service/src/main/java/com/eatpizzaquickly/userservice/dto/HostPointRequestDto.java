@@ -1,16 +1,14 @@
 package com.eatpizzaquickly.userservice.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class HostPointRequestDto {
-    private List<HostPoint> hostPoints;
+    private Long hostId;
+    private Long points;
 
-    @Getter
-    public static class HostPoint {
-        private Long hostId;
-        private Long points;
-    }
 }

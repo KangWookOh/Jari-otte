@@ -194,8 +194,8 @@ public class UserService {
     }
 
     @Transactional
-    public void addPointsToHosts(HostPointRequestDto hostpoints) {
-        for (HostPointRequestDto.HostPoint hostPoint : hostpoints.getHostPoints()) {
+    public void addPointsToHosts(List<HostPointRequestDto> hostpoints) {
+        for (HostPointRequestDto hostPoint : hostpoints) {
             Long hostId = hostPoint.getHostId();
             Long points = hostPoint.getPoints();
 

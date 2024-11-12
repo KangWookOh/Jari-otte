@@ -14,6 +14,7 @@ import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
 import com.eatpizzaquickly.concertservice.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -113,5 +115,14 @@ public class ConcertService {
 
     public void increaseViewCount(Long concertId) {
         concertRedisRepository.increaseViewCount(concertId);
+    }
+
+    @Transactional(readOnly = true)
+    public Long findHostIdByConcertId(Long concertId) {
+        log.info("콘서트 ID : {}",concertId);
+        Concert concert = concertRepository.findById(concertId).orElseThrow(
+                () -> new NotFoundException("콘서트가 없습니다.")
+        );
+        return concert.getHostId();
     }
 }

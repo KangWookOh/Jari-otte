@@ -29,7 +29,7 @@ public class ConcertController {
             @RequestBody ConcertCreateRequest concertCreateRequest,
             @RequestParam(name = "host") Long hostId
     ) {
-        ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest,hostId);
+        ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest, hostId);
         return ResponseEntity.ok(ApiResponse.success("공연 생성 성공", concertDetailResponse));
     }
 
@@ -39,6 +39,12 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertDetailResponse));
     }
 
+    @GetMapping("/{concertId}/host")
+    public Long findHostIdByConcertId(@PathVariable(name = "concertId") Long concertId) {
+        return concertService.findHostIdByConcertId(concertId);
+    }
+
+    ;
     // 삭제
 //    @GetMapping("/search")
 //    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertSearchList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {

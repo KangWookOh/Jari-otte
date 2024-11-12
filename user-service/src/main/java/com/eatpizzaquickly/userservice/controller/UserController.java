@@ -96,10 +96,8 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("인증번호가 메일로 발송되었습니다."));
     }
 
-    @PostMapping("/api/v1/users/addpoints")
-    ResponseEntity<String> addPointsToHost(
-            @RequestBody HostPointRequestDto hostpoints
-    ) {
+    @PostMapping("/addpoints")
+    public ResponseEntity<String> addPointsToHost(@RequestBody List<HostPointRequestDto> hostpoints) {
         userService.addPointsToHosts(hostpoints);
         return ResponseEntity.ok().body("성공");
     }
