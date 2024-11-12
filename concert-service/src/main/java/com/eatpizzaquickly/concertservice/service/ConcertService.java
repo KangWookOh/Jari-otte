@@ -38,6 +38,7 @@ public class ConcertService {
     private final VenueRepository venueRepository;
     private final SeatRepository seatRepository;
     private final ConcertRedisRepository concertRedisRepository;
+    private final SearchService searchService;
 
     @Transactional
     public ConcertDetailResponse saveConcert(ConcertCreateRequest concertCreateRequest) {
@@ -56,6 +57,13 @@ public class ConcertService {
                 .build();
 
         concertRepository.save(concert);
+
+        // Elasticsearch 인덱스 저장
+        try {
+            searchService.saveIndex(concert);
+        } catch (Exception e) {
+            System.err.println("Elasticsearch 인덱싱 실패: " + e.getMessage());
+        }
 
         List<Seat> seats = new ArrayList<>();
         for (int i = 1; i <= venue.getSeatCount(); i++) {
@@ -106,6 +114,13 @@ public class ConcertService {
     public void deleteConcert(Long concertId) {
         Concert concert = concertRepository.findById(concertId).orElseThrow(NotFoundException::new);
         concertRepository.delete(concert);
+
+        // 인덱스 삭제
+        try {
+            searchService.delIndex(concert.getId());
+        } catch (Exception e) {
+            System.err.println("Elasticsearch 인덱싱 실패: " + e.getMessage());
+        }
     }
 
     public Page<ConcertSimpleDto> searchByCategory(String category, Pageable pageable) {

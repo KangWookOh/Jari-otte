@@ -2,22 +2,22 @@ package com.eatpizzaquickly.concertservice.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.eatpizzaquickly.concertservice.dto.SearchAutoTitleDto;
 import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
 import com.eatpizzaquickly.concertservice.dto.response.SearchAutocompleteDto;
 import com.eatpizzaquickly.concertservice.dto.response.SearchConcertListDto;
+import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.ConcertSearch;
-import com.eatpizzaquickly.concertservice.repository.SearchTermRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SearchService {
-    private final SearchTermRepository searchTermRepository;
     private final ElasticsearchClient elasticsearchClient;
 
     /* 자동 완성 기능 구현 (오타 허용 및 부분 일치) */
@@ -36,16 +35,16 @@ public class SearchService {
             // MultiMatchQuery 구성: 오타 허용과 접두사 일치
             MultiMatchQuery matchQueryWithFuzziness = MultiMatchQuery.of(m -> m
                     .query(query)                                         // 사용자가 입력한 검색어
-                    .fields("title^2", "artists")                         // title에 가중치 2배 부여, artists 필드 포함
-                    .fuzziness("AUTO")                                    // 오타 허용
+                    .fields("title^2", "artists")          // title에 가중치 2배 부여, artists 필드 포함
+                    .fuzziness("AUTO")                              // 오타 허용
                     .operator(Operator.Or)                                // OR 연산자로 매칭
             );
 
             // 접두사 일치를 위한 MultiMatchQuery 구성
             MultiMatchQuery matchQueryWithPhrasePrefix = MultiMatchQuery.of(m -> m
                     .query(query)
-                    .fields("title^2", "artists")                         // title과 artists 필드 포함
-                    .type(TextQueryType.PhrasePrefix) // 접두사 일치
+                    .fields("title^2", "artists")           // title과 artists 필드 포함
+                    .type(TextQueryType.PhrasePrefix)                      // 접두사 일치
             );
 
             // BoolQuery 구성
@@ -57,7 +56,7 @@ public class SearchService {
             // SearchRequest 생성
             SearchRequest searchRequest = SearchRequest.of(s -> s
                     .index("concerts")                        // 인덱스 이름
-                    .query(Query.of(q -> q.bool(boolQuery)))  // BoolQuery 사용
+                    .query(Query.of(q -> q.bool(boolQuery)))        // BoolQuery 사용
                     .size(10)                                 // 최대 10개 결과만 반환
             );
 
@@ -102,10 +101,10 @@ public class SearchService {
             // 다중 필드 검색, 오타 허용
             // title과 artists 필드에서 검색어가 포함된 문서를 찾고, 오타도 허용합니다.
             MultiMatchQuery matchQueryWithFuzziness = MultiMatchQuery.of(m -> m
-                    .query(query)   // 사용자가 입력한 검색어
+                    .query(query)                                  // 사용자가 입력한 검색어
                     .fields("title^2", "artists")   // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
-                    .fuzziness("AUTO")  // 오타를 허용하여 유사한 검색어도 매칭
-                    .operator(Operator.Or) // 모든 검색어를 포함할 필요 없이 하나만 포함해도 매칭
+                    .fuzziness("AUTO")                      // 오타를 허용하여 유사한 검색어도 매칭
+                    .operator(Operator.Or)                        // 모든 검색어를 포함할 필요 없이 하나만 포함해도 매칭
             );
 
             // phrase_prefix
@@ -135,8 +134,8 @@ public class SearchService {
                 // DateRangeQuery 생성
                 DateRangeQuery dateRangeQuery = new DateRangeQuery.Builder()
                         .field("startDate")        // 필드 지정
-                        .gte(startDateTime)        // 시작 시간
-                        .lte(endDateTime)          // 종료 시간
+                        .gte(startDateTime)              // 시작 시간
+                        .lte(endDateTime)                // 종료 시간
                         .build();
 
                 // RangeQuery 생성 및 DateRangeQuery 추가
@@ -152,6 +151,12 @@ public class SearchService {
                 // 필터 리스트에 추가
                 filters.add(rangeQueryWrapper);
             }
+            // 삭제 여부 필터 추가 (deleted가 false인 문서만 반환)
+            TermQuery deletedFilter = TermQuery.of(t -> t
+                    .field("deleted")
+                    .value(false) // deleted가 false인 문서만 포함
+            );
+            filters.add(new Query.Builder().term(deletedFilter).build());
 
             // Bool 쿼리 구성
             // BoolQuery의 should 조건을 사용하여 두 쿼리 중 하나라도 매칭되면 결과에 포함시킵니다.
@@ -191,8 +196,58 @@ public class SearchService {
     }
 
     /* 콘서트 생성 될때 인덱스에 저장 */
-    public void saveIndex(Long concertId, String title, List<String> artists, LocalDateTime startDate, LocalDateTime endDate) {
-        ConcertSearch concertSearch = new ConcertSearch(concertId, title, artists, startDate, endDate);
-        searchTermRepository.save(concertSearch);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveIndex(Concert concert) {
+        try {
+            // Concert 객체를 ConcertSearch로 변환
+            ConcertSearch concertSearch = new ConcertSearch(
+                    concert.getId(),
+                    concert.getTitle(),
+                    concert.getArtists(),
+                    concert.getCategory(),
+                    concert.getDeleted(),
+                    concert.getStartDate(),
+                    concert.getEndDate());
+
+            // IndexRequest 생성
+            IndexRequest<ConcertSearch> request = IndexRequest.of(i -> i
+                    .index("concerts")                         // 인덱스 이름 설정
+                    .id(concertSearch.getConcertId().toString())     // 문서 ID 설정
+                    .document(concertSearch)                         // 문서 데이터 설정
+            );
+
+            // Elasticsearch에 데이터 인덱싱 요청
+            IndexResponse response = elasticsearchClient.index(request);
+
+            System.out.println("문서가 인덱싱되었습니다. 문서 ID: " + response.id());
+
+        } catch (Exception e) {
+            throw new RuntimeException("콘서트 인덱싱 실패", e);
+        }
+    }
+
+    /* 콘서트 삭제 시 인덱스에서 해당 문서 삭제 */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void delIndex(Long concertId) {
+        try {
+            // DeleteRequest 생성
+            DeleteRequest request = DeleteRequest.of(d -> d
+                    .index("concerts")          // 인덱스 이름 지정
+                    .id(concertId.toString())   // 삭제할 문서의 ID
+            );
+
+            // Elasticsearch에 삭제 요청
+            DeleteResponse response = elasticsearchClient.delete(request);
+
+            // 삭제 확인 로그
+            if (response.result().name().equals("Deleted")) {
+                System.out.println("문서가 성공적으로 삭제되었습니다. 문서 ID: " + concertId);
+            } else {
+                System.out.println("문서가 존재하지 않거나 이미 삭제되었습니다. 문서 ID: " + concertId);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("콘서트 인덱스 삭제 실패", e);
+        }
     }
 }
