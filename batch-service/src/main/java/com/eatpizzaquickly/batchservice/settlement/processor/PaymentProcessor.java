@@ -30,9 +30,10 @@ public class PaymentProcessor {
 
     public ItemProcessor<TempPayment, HostPoint> pointAdditionProcessor() {
         return payment -> {
+            Long payId = payment.getPaymentId();
             Long hostId = concertClient.findHostIdByConcertId(payment.getConcertId());
             Long points = calculatePoints(payment.getAmount()); // 수수료 떼고 정산
-            return new HostPoint(hostId, points);
+            return new HostPoint(payId, hostId, points);
         };
     }
 

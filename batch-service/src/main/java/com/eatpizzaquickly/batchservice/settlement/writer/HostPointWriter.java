@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import javax.naming.ServiceUnavailableException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,14 +31,7 @@ public class HostPointWriter {
             log.info("포인트 추가 응답 STATUS {}", response.getStatusCode());
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                // 전송이 성공하면 HostPoint 엔티티 삭제
-                List<Long> hostIds = ((List<HostPointRequestDto>) hostPoints.getItems()).stream()
-                        .map(HostPointRequestDto::getHostId)
-                        .collect(Collectors.toList());
-
-                List<HostPoint> hostPointsToDelete = hostPointRepository.findByHostIdIn(hostIds);
-                hostPointRepository.deleteAll(hostPointsToDelete);
-                log.info("호스트 포인트 전송 완료 및 삭제 완료");
+                log.info("호스트 포인트 전송 완료");
             } else {
                 // 실패 시 예외 처리 또는 재시도 로직 추가 가능
                 log.error("포인트 전송 실패: {}", response.getStatusCode());

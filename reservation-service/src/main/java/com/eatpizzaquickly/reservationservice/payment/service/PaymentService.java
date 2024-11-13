@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -294,8 +295,11 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentPage) {
+        // 7일
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
         Pageable pageable = PageRequest.of(currentPage, chunk);
-        Page<Payment> payments = paymentRepository.findBySettlementStatusAndPayStatusOrderByIdAsc(settlementStatus, payStatus, pageable);
+        Page<Payment> payments = paymentRepository.findBySettlementStatusAndPayStatusAndCreatedDateBeforeOrderByIdAsc(settlementStatus, payStatus, sevenDaysAgo, pageable);
         return payments.getContent().stream()
                 .map(PaymentResponseDto::from)
                 .toList();

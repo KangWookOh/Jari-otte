@@ -14,11 +14,13 @@ public class HostPoint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long payId;
     private Long hostId;
     private Long points;
 
 
-    public HostPoint(Long hostId, Long points) {
+    public HostPoint(Long payId, Long hostId, Long points) {
+        this.payId = payId;
         this.hostId = hostId;
         this.points = points;
     }

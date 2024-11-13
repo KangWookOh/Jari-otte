@@ -1,9 +1,6 @@
 package com.eatpizzaquickly.batchservice.settlement.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +13,10 @@ public class TempPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long paymentId;  // 원래 Payment의 ID
+
+    @Enumerated(EnumType.STRING)
     private SettlementStatus settlementStatus;
+    @Enumerated(EnumType.STRING)
     private PayStatus payStatus;
     private Long amount;
     private Long concertId;

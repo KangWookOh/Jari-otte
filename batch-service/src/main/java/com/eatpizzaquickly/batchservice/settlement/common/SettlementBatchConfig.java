@@ -55,16 +55,6 @@ public class SettlementBatchConfig {
                 .build();
     }
 
-    public Step updatePaymentWithTestPaymentStep() {
-        return new StepBuilder("updatePaymentWithTestPaymentStep", jobRepository)
-                .<TempPayment, PaymentRequestDto>chunk(CHUNK_SIZE, transactionManager)
-                .reader(paymentReader.updatePaymentReader())
-                .processor(paymentProcessor.updatePaymentProcessor())
-                .writer(paymentWriter.paymentWriter())
-                .listener(stepLoggingListener)
-                .build();
-    }
-
     public Step settlementStep() {
         return new StepBuilder("settlementStep", jobRepository)
                 .<PaymentResponseDto, TempPayment>chunk(CHUNK_SIZE, transactionManager)
@@ -75,7 +65,7 @@ public class SettlementBatchConfig {
                 .build();
     }
 
-    private Step hostPointStorageStep() {
+    public Step hostPointStorageStep() {
         return new StepBuilder("hostPointStorageStep", jobRepository)
                 .<TempPayment, HostPoint>chunk(CHUNK_SIZE, transactionManager)
                 .reader(paymentReader.pointAdditionReader())
@@ -85,21 +75,33 @@ public class SettlementBatchConfig {
                 .build();
     }
 
-    private Step pointTransmissionStep() {
-        return new StepBuilder("pointAdditionStep", jobRepository)
+    public Step pointTransmissionStep() {
+        return new StepBuilder("pointTransmissionStep", jobRepository)
                 .<HostPoint, HostPointRequestDto>chunk(CHUNK_SIZE, transactionManager)
                 .reader(hostPointReader.hostPointReader())
                 .processor(hostPointProcessor.pointTransmissionProcessor())
                 .writer(hostPointWriter.hostPointTransmissionWriter())
+                .listener(stepLoggingListener)
                 .build();
     }
 
-    private Step settlementSettledStep() {
+    public Step settlementSettledStep() {
         return new StepBuilder("settlementSettledStep", jobRepository)
                 .<TempPayment, TempPayment>chunk(CHUNK_SIZE, transactionManager)
                 .reader(paymentReader.pointAdditionReader())
                 .processor(paymentProcessor.settlementSettledProcessor())
                 .writer(paymentWriter.tempPaymentWriter())
+                .listener(stepLoggingListener)
+                .build();
+    }
+
+    public Step updatePaymentWithTestPaymentStep() {
+        return new StepBuilder("updatePaymentWithTestPaymentStep", jobRepository)
+                .<TempPayment, PaymentRequestDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(paymentReader.updatePaymentReader())
+                .processor(paymentProcessor.updatePaymentProcessor())
+                .writer(paymentWriter.paymentWriter())
+                .listener(stepLoggingListener)
                 .build();
     }
 

@@ -33,12 +33,7 @@ public class PaymentWriter {
             ResponseEntity<String> response = paymentClient.updatePayments((List<PaymentRequestDto>) payments.getItems());
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                List<Long> paymentId = payments.getItems().stream()
-                        .map(PaymentRequestDto::getId)
-                        .toList();
-
-                List<TempPayment> tempPayments = tempPaymentRepository.findByPaymentIdIn(paymentId);
-                tempPaymentRepository.deleteAll();
+                log.info("Payment Update Successfully");
             } else {
                 log.error("Payment Update fail : {}", response.getStatusCode());
                 throw new ServiceUnavailableException("Payment Update Fail");

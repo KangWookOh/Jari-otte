@@ -16,12 +16,15 @@ public class StepLoggingListener implements StepExecutionListener {
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
-        log.info("step completed {}", stepExecution.getStepName());
-        log.info("read count {}", stepExecution.getReadCount());
-        log.info("write count {}", stepExecution.getWriteCount());
-        log.info("commit count {}", stepExecution.getCommitCount());
-        log.info("skip count {}", stepExecution.getSkipCount());
-        log.info("step exit status {}", stepExecution.getExitStatus());
+        log.info("Step 종료: {} ,읽은 아이템 수: {} ,처리된 아이템 수: {}",
+                stepExecution.getStepName(),
+                stepExecution.getReadCount(),
+                stepExecution.getWriteCount());
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         return stepExecution.getExitStatus();
     }
 }

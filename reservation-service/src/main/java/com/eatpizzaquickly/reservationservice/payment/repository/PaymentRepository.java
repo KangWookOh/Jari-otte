@@ -24,5 +24,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Page<Payment> findBySettlementStatus(SettlementStatus settlementStatus, Pageable pageable);
 
-    Page<Payment> findBySettlementStatusAndPayStatusOrderByIdAsc(SettlementStatus settlementStatus, PayStatus payStatus,Pageable pageable);
+    Page<Payment> findBySettlementStatusAndPayStatusAndCreatedDateBeforeOrderByIdAsc(SettlementStatus settlementStatus, PayStatus payStatus, LocalDateTime before, Pageable pageable);
 }
