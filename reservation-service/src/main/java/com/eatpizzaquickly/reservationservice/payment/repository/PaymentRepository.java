@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
-public interface PaymentRepository extends JpaRepository<Payment, Long> {
+public interface PaymentRepository extends JpaRepository<Payment, Long>,PaymentQueryDslRepository {
     Optional<Payment> findByPayUid(String orderId);
 
     Optional<Payment> findByPaymentKey(String paymentKey);
