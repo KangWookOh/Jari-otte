@@ -11,6 +11,7 @@ import com.eatpizzaquickly.batchservice.settlement.processor.HostPointProcessor;
 import com.eatpizzaquickly.batchservice.settlement.processor.PaymentProcessor;
 import com.eatpizzaquickly.batchservice.settlement.reader.HostPointReader;
 import com.eatpizzaquickly.batchservice.settlement.reader.PaymentReader;
+import com.eatpizzaquickly.batchservice.settlement.tasklet.TaskletConfig;
 import com.eatpizzaquickly.batchservice.settlement.writer.HostPointWriter;
 import com.eatpizzaquickly.batchservice.settlement.writer.PaymentWriter;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class SettlementBatchConfig {
     private final PaymentReader paymentReader;
     private final HostPointWriter hostPointWriter;
     private final PaymentWriter paymentWriter;
+    private final TaskletConfig taskletConfig;
     private final JobLoggingListener jobLoggingListener;
     private final StepLoggingListener stepLoggingListener;
 
@@ -52,6 +54,7 @@ public class SettlementBatchConfig {
                 .next(pointTransmissionStep())
                 .next(settlementSettledStep())
                 .next(updatePaymentWithTestPaymentStep())
+                .next(deleteTempTable())
                 .build();
     }
 
@@ -105,12 +108,10 @@ public class SettlementBatchConfig {
                 .build();
     }
 
-    public Step deleteTempTable(){
-        return new StepBuilder("deleteTempTable()",jobRepository)
-                .<Long, HostPoint>chunk(CHUNK_SIZE,transactionManager)
-                .reader(paymentReader.tempPaymentIdReader())
-                .processor(paymentProcessor.tempPaymentToHostPointProcessor())
-                .writer()
+    public Step deleteTempTable() {
+        return new StepBuilder("deleteTempTable()", jobRepository)
+                .tasklet(taskletConfig.deleteTempTableTasklet(), transactionManager)
+                .build();
     }
 
 }
