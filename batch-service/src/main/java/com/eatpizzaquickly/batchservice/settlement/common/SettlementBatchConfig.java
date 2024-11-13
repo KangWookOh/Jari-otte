@@ -105,4 +105,12 @@ public class SettlementBatchConfig {
                 .build();
     }
 
+    public Step deleteTempTable(){
+        return new StepBuilder("deleteTempTable()",jobRepository)
+                .<Long, HostPoint>chunk(CHUNK_SIZE,transactionManager)
+                .reader(paymentReader.tempPaymentIdReader())
+                .processor(paymentProcessor.tempPaymentToHostPointProcessor())
+                .writer()
+    }
+
 }
