@@ -2,45 +2,43 @@ package com.eatpizzaquickly.reservationservice.reservation.service;
 
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.common.exception.UnauthorizedException;
-import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationRequest;
 import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationResponse;
+import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
+import com.eatpizzaquickly.reservationservice.reservation.exception.ReservationCreationException;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpServerErrorException;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ReservationService {
     private final ReservationRepository reservationRepository;
-    private final ObjectMapper objectMapper;
 
-    @KafkaListener(
-            topics = "${spring.kafka.topic.reservation.created}", groupId = "${spring.kafka.consumer.group-id}"
-    )
     @Transactional
-    public PostReservationResponse createReservation(String message) throws JsonProcessingException {
+    public PostReservationResponse createReservation(ReservationCreateRequest request) {
+        try {
+            // 엔티티 변환
+            Reservation reservation = Reservation.builder()
+                    .price(request.getPrice())
+                    .userId(request.getUserId())
+                    .seatId(request.getSeatId())
+                    .reservationStatus(ReservationStatus.PENDING)
+                    .concertId(request.getConcertId())
+                    .build();
 
-        PostReservationRequest request = objectMapper.readValue(message, PostReservationRequest.class);
+            // 저장 후 반환
+            Reservation savedReservation = reservationRepository.save(reservation);
 
-        // 엔티티 변환
-        Reservation reservation = Reservation.builder()
-                .price(request.getPrice())
-                .userId(request.getUserId())
-                .seatId(request.getSeatId())
-                .reservationStatus(ReservationStatus.PENDING)
-                .concertId(request.getConcertId())
-                .build();
-
-        // 저장 후 반환
-        Reservation savedReservation = reservationRepository.save(reservation);
-        return PostReservationResponse.from(savedReservation);
+            return PostReservationResponse.from(savedReservation);
+        } catch (Exception e) {
+            throw new ReservationCreationException();
+        }
     }
 
     @Transactional
