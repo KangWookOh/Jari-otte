@@ -17,4 +17,12 @@ public class SeatReservationEvent {
         this.seatId = seatId;
         this.price = price;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "SeatReservationEvent{concertId=%d, userId=%d, seatId=%d, price=%d}",
+                concertId, userId, seatId, price
+        );
+    }
 }
