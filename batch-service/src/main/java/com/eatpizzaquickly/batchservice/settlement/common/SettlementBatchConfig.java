@@ -52,7 +52,6 @@ public class SettlementBatchConfig {
                 .start(settlementStep())
                 .next(hostPointStorageStep())
                 .next(pointTransmissionStep())
-                .next(settlementSettledStep())
                 .next(updatePaymentWithTestPaymentStep())
                 .next(deleteTempTable())
                 .build();
@@ -91,7 +90,7 @@ public class SettlementBatchConfig {
     public Step settlementSettledStep() {
         return new StepBuilder("settlementSettledStep", jobRepository)
                 .<TempPayment, TempPayment>chunk(CHUNK_SIZE, transactionManager)
-                .reader(paymentReader.pointAdditionReader())
+                .reader(paymentReader.settlementSettledReader())
                 .processor(paymentProcessor.settlementSettledProcessor())
                 .writer(paymentWriter.tempPaymentWriter())
                 .listener(stepLoggingListener)

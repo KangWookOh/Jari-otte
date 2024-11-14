@@ -18,13 +18,13 @@ public class TaskletConfig {
         return ((contribution, chunkContext) -> {
             try (Connection connection = dataSource.getConnection()) {
                 String deleteHostPointSql = "DELETE FROM host_point WHERE pay_id IN (" +
-                        "SELECT payment_id FROM temp_payment WHERE status = 'SETTLED')";
+                        "SELECT payment_id FROM temp_payment WHERE settlement_status = 'SETTLED')";
                 try (PreparedStatement hostPointStatement = connection.prepareStatement(deleteHostPointSql)) {
                     hostPointStatement.executeUpdate();
                 }
 
                 // 2. Temp_payment 테이블에서 status가 settled인 항목 삭제
-                String deleteTempPaymentSql = "DELETE FROM Temp_payment WHERE status = 'SETTLED'";
+                String deleteTempPaymentSql = "DELETE FROM Temp_payment WHERE settlement_status = 'SETTLED'";
                 try (PreparedStatement tempPaymentStatement = connection.prepareStatement(deleteTempPaymentSql)) {
                     tempPaymentStatement.executeUpdate();
                 }

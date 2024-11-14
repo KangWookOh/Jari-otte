@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.ServiceUnavailableException;
 import java.util.List;
@@ -27,7 +26,6 @@ public class PaymentWriter {
         return tempPaymentRepository::saveAll;
     }
 
-    @Transactional
     public ItemWriter<PaymentRequestDto> paymentWriter() {
         return payments -> {
             ResponseEntity<String> response = paymentClient.updatePayments((List<PaymentRequestDto>) payments.getItems());

@@ -13,7 +13,6 @@ public class TempPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long paymentId;  // 원래 Payment의 ID
-
     @Enumerated(EnumType.STRING)
     private SettlementStatus settlementStatus;
     @Enumerated(EnumType.STRING)

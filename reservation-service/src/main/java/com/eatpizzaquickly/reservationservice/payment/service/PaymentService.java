@@ -139,6 +139,7 @@ public class PaymentService {
             // 3. 결제 성공 처리
             payment.setPayStatus(PayStatus.PAID);
             payment.setPaymentKey(tossResponse.getPaymentKey());
+            payment.setPaidAt(LocalDateTime.now());
             paymentRepository.save(payment);
 
             // 예약 상태 업데이트
@@ -299,7 +300,7 @@ public class PaymentService {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
         Pageable pageable = PageRequest.of(currentPage, chunk);
-        Page<Payment> payments = paymentRepository.findBySettlementStatusAndPayStatusAndCreatedAtBeforeOrderByIdAsc(settlementStatus, payStatus, sevenDaysAgo, pageable);
+        Page<Payment> payments = paymentRepository.findBySettlementStatusAndPayStatusAndPaidAtBeforeOrderByIdAsc(settlementStatus, payStatus, sevenDaysAgo, pageable);
         return payments.getContent().stream()
                 .map(PaymentResponseDto::from)
                 .toList();
@@ -307,11 +308,13 @@ public class PaymentService {
 
     @Transactional
     public void updatePayments(List<PaymentRequestDto> payments) {
+        LocalDateTime currentTime = LocalDateTime.now();
         List<Payment> paymentList = payments.stream()
                 .map(paymentRequestDto -> {
                     Payment payment = paymentRepository.findById(paymentRequestDto.getId())
                             .orElseThrow(() -> new PaymentNotFoundException("결제 내역이 없습니다."));
                     payment.setSettlementStatus(paymentRequestDto.getSettlementStatus());
+                    payment.setSettledAt(currentTime);
                     return payment;
                 }).toList();
 

@@ -89,6 +89,11 @@ public class PaymentReader {
         return createReader("updatePaymentReader", SettlementStatus.SETTLED);
     }
 
+    @Bean
+    public JpaPagingItemReader<TempPayment> settlementSettledReader() {
+        return createReader("settlementSettledReader",SettlementStatus.PROGRESS);
+    }
+
     private JpaPagingItemReader<TempPayment> createReader(String name, SettlementStatus status) {
         return new JpaPagingItemReaderBuilder<TempPayment>()
                 .name(name)
@@ -98,6 +103,7 @@ public class PaymentReader {
                 .parameterValues(Collections.singletonMap("status", status))
                 .build();
     }
+
 
 
 }

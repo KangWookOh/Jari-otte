@@ -25,6 +25,7 @@ public class StepLoggingListener implements StepExecutionListener {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        log.info("Step 종료 상태: {}", stepExecution.getExitStatus());
         return stepExecution.getExitStatus();
     }
 }

@@ -12,4 +12,6 @@ public interface TempPaymentRepository extends JpaRepository<TempPayment, Long> 
     Page<TempPayment> findBySettlementStatus(SettlementStatus settlementStatus, Pageable pageable);
 
     List<TempPayment> findByPaymentIdIn(List<Long> paymentId);
+
+    List<TempPayment> findByIdIn(List<Long> ids);
 }
