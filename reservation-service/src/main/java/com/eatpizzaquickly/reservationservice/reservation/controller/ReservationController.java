@@ -1,8 +1,6 @@
 package com.eatpizzaquickly.reservationservice.reservation.controller;
 
 import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
-import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationRequest;
-import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationResponse;
 import com.eatpizzaquickly.reservationservice.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
