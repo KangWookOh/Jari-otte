@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -86,7 +85,7 @@ public class CouponBatchConfig {
         return chunk -> {
             List<Long> userCouponIds = chunk.getItems().stream()
                     .map(UserCouponDto::getId)
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (!userCouponIds.isEmpty()) {
                 couponServiceClient.deleteExpiredUserCoupons(userCouponIds);
@@ -99,7 +98,7 @@ public class CouponBatchConfig {
         return chunk -> {
             List<Long> couponIds = chunk.getItems().stream()
                     .map(CouponDto::getId)
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (!couponIds.isEmpty()) {
                 couponServiceClient.deactivateExpiredCoupons(couponIds);
