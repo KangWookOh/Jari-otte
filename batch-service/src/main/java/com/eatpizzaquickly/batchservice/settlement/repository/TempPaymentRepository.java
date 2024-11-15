@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface TempPaymentRepository extends JpaRepository<TempPayment, Long> {
+public interface TempPaymentRepository extends JpaRepository<TempPayment, Long>,TempPaymentQueryDslRepository {
     Page<TempPayment> findBySettlementStatus(SettlementStatus settlementStatus, Pageable pageable);
 
     List<TempPayment> findByPaymentIdIn(List<Long> paymentId);
