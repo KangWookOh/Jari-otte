@@ -41,7 +41,18 @@ eureka:
 #      exposure:
 #        include: health, info, prometheus
 
+#logging:
+#  level:
+#    root: info
+#  config: classpath:logback-batch.xml
+
 logging:
   level:
-    root: info
-  config: classpath:logback-batch.xml
+    com.eatpizzaquickly.batchservice.coupon.batch: DEBUG
+    com.eatpizzaquickly.batchservice.coupon.client.CouponServiceClient: DEBUG
+
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: full

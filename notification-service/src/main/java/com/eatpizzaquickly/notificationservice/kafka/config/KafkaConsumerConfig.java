@@ -41,9 +41,12 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        // 자동 커밋 비활성화
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-
+        // 폴링 시 최대 메시지 개수
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
+        // 재시도 관련 설정: Consumer 자체에서 에러 발생 시 특정 타이밍에 재시도
+        props.put(ConsumerConfig.RETRY_BACKOFF_MS_CONFIG, 1000); // 첫 번째 실패 후 재시도 대기 시간
+        props.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 1000); // 연결 재시도 간격
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
