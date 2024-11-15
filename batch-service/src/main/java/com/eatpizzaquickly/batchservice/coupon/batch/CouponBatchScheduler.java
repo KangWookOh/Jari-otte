@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.couponservice.batch;
+package com.eatpizzaquickly.batchservice.coupon.batch;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +15,12 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 @RequiredArgsConstructor
 public class CouponBatchScheduler {
+
     private final JobLauncher jobLauncher;
     private final Job couponBatchJob;
 
-    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+    //@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     public void runBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

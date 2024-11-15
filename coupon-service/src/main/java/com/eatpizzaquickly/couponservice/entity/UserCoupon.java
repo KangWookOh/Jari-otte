@@ -44,12 +44,17 @@ public class UserCoupon {
         this.isUsed = true;
     }
 
+    // isExpired는 별도 컬럼으로 존재하지 않고 expiryDate로 판단
+    public boolean isExpired(LocalDate currentDate) {
+        return expiryDate.isBefore(currentDate);
+    }
+
     @Builder
     public UserCoupon(Long userId, Long couponId, Boolean isUsed, LocalDate expiryDate, LocalDateTime issueDate) {
         this.userId = userId;
         this.couponId = couponId;
         this.isUsed = isUsed != null ? isUsed : false;  // 기본값 설정
-        this.expiryDate = LocalDate.now().plusDays(1);
+        this.expiryDate = LocalDate.now().minusDays(1);
         this.issueDate = issueDate != null ? issueDate : LocalDateTime.now();  // 기본값 설정
     }
 }

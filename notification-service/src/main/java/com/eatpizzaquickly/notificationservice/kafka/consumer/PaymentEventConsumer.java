@@ -30,12 +30,7 @@ public class PaymentEventConsumer {
     private final ObjectMapper objectMapper;
     private final FailedMessageRepository failedMessageRepository;
 
-    @RetryableTopic(
-            attempts = "3",
-            backoff = @Backoff(delay = 1000, multiplier = 2.0),
-            dltTopicSuffix = ".DLT",
-            exclude = {JsonProcessingException.class, MessageParsingException.class}  // 파싱 관련 에러는 재시도하지 않음
-    )
+
     @KafkaListener(
             topics = "payment-events",
             groupId = "notification-group",
