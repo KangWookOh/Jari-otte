@@ -4,6 +4,7 @@ import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationResponseDto;
 import com.eatpizzaquickly.reservationservice.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class ReservationController {
 //        return response;
 //    }
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ReservationResponseDto>>> getReservations(
+    public ResponseEntity<ApiResponse<Page<ReservationResponseDto>>> getReservations(
             @RequestHeader("X-Authenticated-User") Long userId,
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "size", defaultValue = "4") int size

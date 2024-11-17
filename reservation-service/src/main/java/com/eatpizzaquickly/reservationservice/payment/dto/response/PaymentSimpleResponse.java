@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.reservationservice.payment.dto.response;
 
+import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,14 +10,14 @@ import lombok.Getter;
 public class PaymentSimpleResponse {
     private Long amount;
     private String payInfo;
-    private String payStatus;
+    private PayStatus payStatus;
     private Long concertId;
 
     public static PaymentSimpleResponse from(Payment payment){
         return new PaymentSimpleResponse(
                 payment.getAmount(),
                 payment.getPayInfo(),
-                payment.getPayStatus().name(),
+                payment.getPayStatus(),
                 payment.getReservation().getConcertId()
         );
     }

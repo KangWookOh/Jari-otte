@@ -10,6 +10,7 @@ import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStat
 import com.eatpizzaquickly.reservationservice.reservation.exception.ReservationCreationException;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -62,11 +63,11 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReservationResponseDto> getReservations(Long userId, int page, int size) {
+    public Page<ReservationResponseDto> getReservations(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        List<Reservation> reservations = reservationRepository.findByUserIdAndStatus(userId, ReservationStatus.PENDING, pageable).getContent();
-        return reservations.stream()
-                .map(ReservationResponseDto::from)
-                .toList();
+
+        return reservationRepository.findByUserId(userId, pageable).map(
+                ReservationResponseDto::from
+        );
     }
 }
