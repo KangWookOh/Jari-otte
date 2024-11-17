@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/venue", "/api/v1/concerts").hasAuthority("ADMIN")
                         .pathMatchers(HttpMethod.GET, "/api/v1/concerts/search", "/api/v1/concerts/search/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/concerts/*", "/api/v1/concerts/popular", "/api/v1/concerts").permitAll()
                         .pathMatchers(HttpMethod.PATCH, "/api/v1/concerts/*").hasAuthority("ADMIN")
                         .pathMatchers(HttpMethod.PATCH,"/api/v1/users/oauth/kakao").permitAll()
                         .pathMatchers("/payment.html").permitAll()
