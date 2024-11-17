@@ -3,16 +3,23 @@ package com.eatpizzaquickly.reservationservice.reservation.service;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.common.exception.UnauthorizedException;
 import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationResponse;
+import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationResponseDto;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
 import com.eatpizzaquickly.reservationservice.reservation.exception.ReservationCreationException;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
+
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -53,5 +60,14 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELED);
 
         reservationRepository.save(reservation);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReservationResponseDto> getReservations(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        return reservationRepository.findByUserId(userId, pageable).map(
+                ReservationResponseDto::from
+        );
     }
 }

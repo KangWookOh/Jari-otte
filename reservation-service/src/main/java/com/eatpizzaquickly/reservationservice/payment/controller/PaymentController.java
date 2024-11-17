@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.reservationservice.payment.controller;
 
+
 import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelRequest;
@@ -7,10 +8,13 @@ import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentReq
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
+import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelException;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentSessionExpiredException;
 import com.eatpizzaquickly.reservationservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -80,7 +84,8 @@ public class PaymentController {
     }
 
     @GetMapping
-    List<PaymentResponseDto> getPaymentsByStatus(
+
+    public List<PaymentResponseDto> getPaymentsByStatus(
             @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
             @RequestParam(name = "payStatus") PayStatus payStatus,
             @RequestParam(name = "size") int chunk,
@@ -90,9 +95,18 @@ public class PaymentController {
     }
 
     @PutMapping
-    ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments) {
+    public ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments) {
         paymentService.updatePayments(payments);
         return ResponseEntity.ok().body("update successfully");
+
+    public ResponseEntity<ApiResponse<Page<PaymentSimpleResponse>>> getPayments(
+            @RequestHeader("X-Authenticated-User") Long userId,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size
+    ) {
+
+        return ResponseEntity.ok(ApiResponse.success("결제 내역 조회 성공", paymentService.getPayments(userId, page, size)));
+
     }
 
     @GetMapping("/payment-page")

@@ -11,6 +11,7 @@ import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentRes
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.TossPaymentResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.UserResponseDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.*;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayMethod;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
@@ -294,6 +295,7 @@ public class PaymentService {
         return response.getBody();
     }
 
+
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentOffset) {
         // 7일
@@ -317,5 +319,10 @@ public class PaymentService {
                 }).toList();
 
         paymentRepository.saveAll(paymentList);
+
+    public Page<PaymentSimpleResponse> getPayments(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return paymentRepository.getPaymentByUserId(userId, pageable);
+
     }
 }
