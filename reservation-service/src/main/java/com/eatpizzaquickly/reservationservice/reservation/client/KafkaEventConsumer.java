@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.reservationservice.reservation.client;
 
+import com.eatpizzaquickly.reservationservice.common.util.JsonUtil;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.dto.SeatReservationEvent;
 import com.eatpizzaquickly.reservationservice.reservation.service.ReservationService;
@@ -15,13 +16,15 @@ public class KafkaEventConsumer {
 
     private final ReservationService reservationService;
     private final ObjectMapper objectMapper;
+    private final JsonUtil jsonUtil;
 
     @KafkaListener(
             topics = "${spring.kafka.topic.reservation-created}",
             groupId = "${spring.kafka.consumer.group-id}"
     )
     public void consumeSeatReservationEvent(String message) throws JsonProcessingException {
-        SeatReservationEvent event = objectMapper.readValue(message, SeatReservationEvent.class);
+//        SeatReservationEvent event = objectMapper.readValue(message, SeatReservationEvent.class);
+        SeatReservationEvent event = jsonUtil.toObject(message, SeatReservationEvent.class);
         ReservationCreateRequest request = ReservationCreateRequest.from(event);
         reservationService.createReservation(request);
     }
