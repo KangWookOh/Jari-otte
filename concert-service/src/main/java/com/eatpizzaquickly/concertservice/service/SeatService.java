@@ -1,6 +1,8 @@
 package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.client.KafkaEventProducer;
+import com.eatpizzaquickly.concertservice.client.ReservationCompensationEvent;
+import com.eatpizzaquickly.concertservice.client.ReservationCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
@@ -9,18 +11,22 @@ import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
 import com.eatpizzaquickly.concertservice.exception.NotFoundException;
+import com.eatpizzaquickly.concertservice.exception.detail.CompensateReservationFailureException;
 import com.eatpizzaquickly.concertservice.exception.detail.InvalidReservationFlowException;
 import com.eatpizzaquickly.concertservice.exception.detail.RequestLimitExceededException;
 import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
 import com.eatpizzaquickly.concertservice.repository.QueueRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.SeatRepository;
+import com.eatpizzaquickly.concertservice.util.SlackNotifier;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -31,6 +37,7 @@ public class SeatService {
     private final ConcertRedisRepository concertRedisRepository;
     private final QueueRedisRepository queueRedisRepository;
     private final KafkaEventProducer kafkaEventProducer;
+    private final SlackNotifier slackNotifier;
 
     public SeatListResponse findSeatList(Long concertId, Long userId) {
         // 사용자가 "좌석 예매 중" 상태에 있는지 먼저 확인
@@ -132,5 +139,44 @@ public class SeatService {
         // 잔여 좌석 수 반영
         concert.updateSeatCount(availableSeatCount);
         concertRepository.save(concert); // 업데이트된 좌석 수 저장
+    }
+
+    @Transactional
+    public void compensateReservation(ReservationCompensationEvent event) {
+        Long concertId = event.getConcertId();
+        Long seatId = event.getSeatId();
+        Long userId = event.getUserId();
+
+        log.info("보상 트랜잭션 시작 - concertId: {}, seatId: {}, userId: {}", concertId, seatId, userId);
+
+        try {
+            // 1. Redis 상태 복구
+            concertRedisRepository.addSeatBackToAvailable(concertId, seatId);
+            queueRedisRepository.markInReservation(concertId, userId);
+
+            // 2. DB 상태 복구
+            Seat seat = seatRepository.findById(seatId).orElseThrow(() -> new NotFoundException("해당 좌석이 존재하지 않습니다."));
+            seat.changeReserved(false);
+
+            log.info("보상 트랜잭션 완료 - concertId: {}, seatId: {}, userId: {}", concertId, seatId, userId);
+            notifyCompensateReservationSuccess(event);
+        } catch (Exception e) {
+            log.info("보상 트랜잭션 실패 - concertId: {}, seatId: {}, userId: {}", concertId, seatId, userId);
+            throw new CompensateReservationFailureException();
+        }
+    }
+
+    private void notifyCompensateReservationSuccess(ReservationCompensationEvent event) {
+        String message = String.format(
+                """
+                        [보상 트랜잭션 완료]
+                        - Concert ID: %d
+                        - Seat ID: %d
+                        - User ID: %d
+                        """,
+                event.getConcertId(), event.getSeatId(), event.getUserId()
+        );
+
+        slackNotifier.sendNotification(message);
     }
 }

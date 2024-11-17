@@ -33,13 +33,13 @@ spring:
       max-in-flight-requests-per-connection: 1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: concert-group
     topic:
-      reservation:
-        created: "seat.reservation.created"
+      reservation-created: seat.reservation.created
+      reservation-created-compensation: seat.reservation.create.compensation
   elasticsearch:
     uris: localhost:9200
-    username: jari
-    password: jariotte1123
 
 cloud:
   aws:
@@ -71,3 +71,6 @@ logging:
   level:
     root: info
   config: classpath:logback-concert.xml
+
+webhooks:
+  url: ${WEBHOOKS_URL}

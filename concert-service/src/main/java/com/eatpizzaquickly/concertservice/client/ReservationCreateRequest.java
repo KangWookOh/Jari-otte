@@ -1,9 +1,9 @@
-package com.eatpizzaquickly.reservationservice.reservation.dto;
+package com.eatpizzaquickly.concertservice.client;
 
 import lombok.Getter;
 
 @Getter
-public class PostReservationRequest {
+public class ReservationCreateRequest {
     private int price;
     private Long concertId;
     private Long seatId;

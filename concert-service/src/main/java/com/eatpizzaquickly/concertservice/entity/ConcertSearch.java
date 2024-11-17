@@ -9,46 +9,56 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.*;
+//import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Document(indexName = "concerts")
 @NoArgsConstructor // 기본 생성자 추가
 @Getter
-@Setting(settingPath = "settings/settings.json")
-@Mapping(mappingPath = "settings/mappings.json")
 public class ConcertSearch {
     @Id
-    @Field(type = FieldType.Long)
     private Long concertId;  // Concert ID를 Elasticsearch Document ID로 사용
 
-    @Field(type = FieldType.Text, analyzer = "nori_edge_ngram_analyzer", searchAnalyzer = "nori_analyzer")
     private String title;  // 검색할 수 있도록 텍스트 타입으로 설정
 
-    @Field(type = FieldType.Text, analyzer = "nori_edge_ngram_analyzer", searchAnalyzer = "nori_analyzer")
     private List<String> artists; // 아티스트
 
-    @Field(type = FieldType.Date, format = { DateFormat.strict_date_optional_time, DateFormat.epoch_millis })
+    private Category category; // 카테고리 Enum 타입 필드
+
+    private Boolean deleted; // 삭제 여부 필드
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime startDate;
 
-    @Field(type = FieldType.Date, format = { DateFormat.strict_date_optional_time, DateFormat.epoch_millis })
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endDate;
 
     // 생성자 또는 다른 메서드에서 startDate와 endDate를 명시적으로 초기화
-    public ConcertSearch(Long concertId, String title, List<String> artists, LocalDateTime startDate, LocalDateTime endDate) {
+    public ConcertSearch(Long concertId, String title, List<String> artists, Category category, Boolean deleted, LocalDateTime startDate, LocalDateTime endDate) {
         this.concertId = concertId;
         this.title = title;
         this.artists = artists;
+        this.category = category;
+        this.deleted = deleted;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public static ConcertSearch from(Concert concert) {
+        return new ConcertSearch(
+                concert.getId(),
+                concert.getTitle(),
+                concert.getArtists(),
+                concert.getCategory(),
+                concert.getDeleted(),
+                concert.getStartDate(),
+                concert.getEndDate()
+        );
     }
 }

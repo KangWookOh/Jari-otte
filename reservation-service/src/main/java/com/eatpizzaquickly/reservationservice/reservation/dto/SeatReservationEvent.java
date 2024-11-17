@@ -1,9 +1,11 @@
-package com.eatpizzaquickly.concertservice.dto;
+package com.eatpizzaquickly.reservationservice.reservation.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class SeatReservationEvent {
     private Long concertId;
     private Long userId;
@@ -16,13 +18,5 @@ public class SeatReservationEvent {
         this.userId = userId;
         this.seatId = seatId;
         this.price = price;
-    }
-
-    @Override
-    public String toString() {
-        return String.format(
-                "SeatReservationEvent{concertId=%d, userId=%d, seatId=%d, price=%d}",
-                concertId, userId, seatId, price
-        );
     }
 }
