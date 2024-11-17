@@ -78,6 +78,9 @@ public class Coupon implements Serializable {
         }
         return this.isActive;
     }
+    public void updateIsActive(Boolean isActive) { // Boolean 타입의 setter
+        this.isActive = isActive != null ? isActive : Boolean.FALSE; // 기본값 설정
+    }
 
 
 }
