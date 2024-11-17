@@ -61,10 +61,7 @@ public class CouponBatchService {
         if (userCouponIds.isEmpty()) {
             return;
         }
-
         LocalDate currentDate = LocalDate.now();
-
-
         // 2. 지정된 ID의 만료된 쿠폰 삭제
         int deletedCount = userCouponRepository.deleteExpiredUserCoupons(userCouponIds);
         log.info("Deleted {} expired user coupons", deletedCount);
