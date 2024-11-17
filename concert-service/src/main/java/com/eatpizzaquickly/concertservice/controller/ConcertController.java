@@ -79,5 +79,11 @@ public class ConcertController {
         int limit = 10;
         List<ConcertSimpleDto> topViewedConcerts = concertService.getTopViewedConcerts(limit);
         return ResponseEntity.ok(ApiResponse.success("인기 콘서트 조회 성공", PopularConcertResponse.of(topViewedConcerts)));
+
+    @PutMapping("/{concertId}")
+    public ResponseEntity<ApiResponse<Void>> updateConcert(@PathVariable Long concertId,
+                                                           @RequestBody ConcertUpdateRequest concertUpdateRequest) {
+        concertService.updateConcert(concertId, concertUpdateRequest);
+        return ResponseEntity.ok(ApiResponse.success("공연 업데이트 성공"));
     }
 }
