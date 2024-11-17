@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -32,5 +34,12 @@ public class VenueService {
     public VenueDetailResponse findVenue(Long venueId) {
         Venue venue = venueRepository.findById(venueId).orElseThrow(NotFoundException::new);
         return VenueDetailResponse.from(venue);
+    }
+
+    public List<VenueDetailResponse> findVenues() {
+        List<Venue> venues = venueRepository.findAll();
+        return venues.stream().map(
+                VenueDetailResponse::from
+        ).toList();
     }
 }

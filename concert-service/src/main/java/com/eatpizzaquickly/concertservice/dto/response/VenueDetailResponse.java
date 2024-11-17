@@ -9,10 +9,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class VenueDetailResponse {
+    private Long id;
     private String location;
     private Integer seatCount;
 
     public static VenueDetailResponse from(Venue venue) {
-        return new VenueDetailResponse(venue.getLocation(), venue.getSeatCount());
+        return new VenueDetailResponse(
+                venue.getId(),
+                venue.getLocation(),
+                venue.getSeatCount()
+        );
     }
 }

@@ -1,6 +1,7 @@
 package com.eatpizzaquickly.batchservice.settlement.reader;
 
 import com.eatpizzaquickly.batchservice.common.client.PaymentClient;
+import com.eatpizzaquickly.batchservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.batchservice.settlement.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.batchservice.settlement.entity.PayStatus;
 import com.eatpizzaquickly.batchservice.settlement.entity.SettlementStatus;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.CHUNK_SIZE;
@@ -35,7 +37,7 @@ public class PaymentReader {
     private final PaymentClient paymentClient;
     private final TempPaymentRepository tempPaymentRepository;
     private final EntityManagerFactory entityManagerFactory;
-    private static final String OFFSET_KEY = "current_offset";
+    public static final String OFFSET_KEY = "current_offset";
     private final RedisTemplate<String, String> redisTemplate;
 
     public ItemReader<PaymentResponseDto> paidPaymentReader() {
@@ -47,7 +49,7 @@ public class PaymentReader {
                 // 배치 작업 시작 시, Redis에 키가 없으면 초기값 설정
                 Boolean hasKey = redisTemplate.hasKey(OFFSET_KEY);
                 if (Boolean.FALSE.equals(hasKey)) {
-                    redisTemplate.opsForValue().set(OFFSET_KEY, "1");
+                    redisTemplate.opsForValue().set(OFFSET_KEY, "0");
                     log.info("Offset Initialize");
                 }
             }
@@ -56,8 +58,7 @@ public class PaymentReader {
             public PaymentResponseDto read() {
                 // currentChunk가 비었을 경우 새로운 데이터를 가져옴
                 if (currentChunk.isEmpty()) {
-                    int currentOffset = Math.toIntExact(getAndIncrementOffset(CHUNK_SIZE)); //Long to int
-                    log.info("현재 작업 Offset {}", currentOffset);
+                    Long currentOffset = Long.valueOf(redisTemplate.opsForValue().get(OFFSET_KEY));
 
                     // ID를 기준으로 하는 ZeroOffsetReader로 변경
                     currentChunk = paymentClient.getPaymentsByStatusAfterId(
@@ -68,17 +69,19 @@ public class PaymentReader {
                         log.info("Offset {} 데이터 처리 완료", currentOffset);
                         return null;
                     }
+
+                    Long maxPaymentId = currentChunk.stream()
+                            .mapToLong(PaymentResponseDto::getId)
+                            .max()
+                            .orElseThrow(() -> new NotFoundException("진행할 payment가 없습니다."));
+
+                    redisTemplate.opsForValue().set(OFFSET_KEY, String.valueOf(maxPaymentId));
                 }
 
                 // 첫 번째 데이터를 반환하고, 리스트에서 제거
                 PaymentResponseDto paymentResponseDto = currentChunk.remove(0);
                 log.info("Processing PaymentResponseDto: {}", paymentResponseDto);
                 return paymentResponseDto;
-            }
-
-            private Long getAndIncrementOffset(int increment) {
-                // Redis에서 offset 증가 후 진행할 Offset 반환
-                return redisTemplate.opsForValue().increment(OFFSET_KEY, CHUNK_SIZE) - CHUNK_SIZE;
             }
         };
     }

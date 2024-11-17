@@ -20,7 +20,6 @@ import java.util.List;
 
 @Slf4j
 @Configuration
-@EnableBatchProcessing
 @RequiredArgsConstructor
 public class CouponBatchConfig {
 

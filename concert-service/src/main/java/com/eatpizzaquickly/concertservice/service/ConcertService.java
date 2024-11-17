@@ -47,8 +47,10 @@ public class ConcertService {
                 .artists(concertCreateRequest.getArtists())
                 .startDate(concertCreateRequest.getStartDate())
                 .endDate(concertCreateRequest.getEndDate())
+                .performDate(concertCreateRequest.getPerformDate())
                 .category(Category.of(concertCreateRequest.getCategory()))
                 .thumbnailUrl(concertCreateRequest.getThumbnailUrl())
+                .price(concertCreateRequest.getPrice())
                 .venue(venue)
                 .seatCount(venue.getSeatCount())
                 .build();
@@ -140,7 +142,7 @@ public class ConcertService {
 
     @Transactional(readOnly = true)
     public Long findHostIdByConcertId(Long concertId) {
-        log.info("콘서트 ID : {}",concertId);
+        log.info("콘서트 ID : {}", concertId);
         Concert concert = concertRepository.findById(concertId).orElseThrow(
                 () -> new NotFoundException("콘서트가 없습니다.")
         );

@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/venues")
 @RestController
@@ -25,5 +27,11 @@ public class VenueController {
     public ResponseEntity<VenueDetailResponse> getVenue(@PathVariable Long venueId) {
         VenueDetailResponse venueDetailResponse = venueService.findVenue(venueId);
         return ResponseEntity.ok(venueDetailResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<VenueDetailResponse>> getVenues() {
+        List<VenueDetailResponse> venueDetailResponses = venueService.findVenues();
+        return ResponseEntity.ok(venueDetailResponses);
     }
 }

@@ -17,6 +17,7 @@ public class ConcertDetailResponse {
     private String location;
     private String description;
     private Integer seatCount;
+    private int price;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
@@ -26,6 +27,7 @@ public class ConcertDetailResponse {
                 concert.getTitle(),
                 venue.getLocation(),
                 concert.getDescription(),
+                concert.getPrice(),
                 seatCount,
                 concert.getStartDate(),
                 concert.getEndDate());

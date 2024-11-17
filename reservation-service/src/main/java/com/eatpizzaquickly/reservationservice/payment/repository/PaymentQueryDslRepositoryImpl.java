@@ -3,8 +3,6 @@ package com.eatpizzaquickly.reservationservice.payment.repository;
 
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
-import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
-import com.eatpizzaquickly.reservationservice.payment.entity.QPayment;
 import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.querydsl.core.types.Projections;
@@ -32,7 +30,7 @@ public class PaymentQueryDslRepositoryImpl implements PaymentQueryDslRepository 
             SettlementStatus settlementStatus,
             PayStatus payStatus,
             LocalDateTime before,
-            int currentOffset,
+            Long currentOffset,
             int chunk) {
         Pageable pageable = PageRequest.of(0, chunk);
 
