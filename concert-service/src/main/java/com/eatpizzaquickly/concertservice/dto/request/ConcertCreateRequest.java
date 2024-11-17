@@ -13,6 +13,8 @@ public class ConcertCreateRequest {
     private List<String> artists;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private LocalDateTime performDate;
+    private int price;
     private String category;
     private Long venueId;
     private String thumbnailUrl;

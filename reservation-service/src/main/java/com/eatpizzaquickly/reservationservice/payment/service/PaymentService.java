@@ -297,7 +297,7 @@ public class PaymentService {
 
 
     @Transactional(readOnly = true)
-    public List<PaymentResponseDto> getPaymentsByStatusAfterId(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentOffset) {
+    public List<PaymentResponseDto> getPaymentsByStatusAfterId(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, Long currentOffset) {
         // 7일
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 

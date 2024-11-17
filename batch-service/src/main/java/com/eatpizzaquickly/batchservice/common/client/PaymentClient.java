@@ -20,7 +20,7 @@ public interface PaymentClient {
             @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
             @RequestParam(name = "payStatus") PayStatus payStatus,
             @RequestParam(name = "size") int chunk,
-            @RequestParam(name = "offset") int currentOffset);
+            @RequestParam(name = "offset") Long currentOffset);
 
     @PutMapping("/api/v1/payments")
     ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments);

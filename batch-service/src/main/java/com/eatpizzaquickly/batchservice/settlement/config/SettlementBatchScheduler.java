@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.batchservice.coupon.batch;
+package com.eatpizzaquickly.batchservice.settlement.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,27 +10,27 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Component
 @EnableScheduling
 @RequiredArgsConstructor
-public class CouponBatchScheduler {
-
+public class SettlementBatchScheduler {
     private final JobLauncher jobLauncher;
-    private final Job couponBatchJob;
+    private final Job settlementBatchJob;
 
-    //@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
-//    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
+    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 5000)
     public void runBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addLong("time", System.currentTimeMillis())
+                    .addString("requestDate", LocalDateTime.now().toString())
                     .toJobParameters();
 
-            jobLauncher.run(couponBatchJob, jobParameters);
+            jobLauncher.run(settlementBatchJob, jobParameters);
             log.info("Coupon batch job completed successfully");
         } catch (Exception e) {
-            log.error("Error occurred while running coupon batch job", e);
+            log.error("Error occurred while running settlement batch job", e);
         }
     }
 }

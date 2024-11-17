@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.batchservice.common.config;
 
+import feign.Logger;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +10,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Slf4j
 public class FeignConfig {
-
+    @Bean
+    Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
+    }
     @Bean
     public RequestInterceptor requestLoggingInterceptor() {
         return new RequestInterceptor() {

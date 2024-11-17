@@ -87,7 +87,7 @@ public class PaymentController {
             @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
             @RequestParam(name = "payStatus") PayStatus payStatus,
             @RequestParam(name = "size") int chunk,
-            @RequestParam(name = "offset") int currentOffset
+            @RequestParam(name = "offset") Long currentOffset
     ) {
         return paymentService.getPaymentsByStatusAfterId(settlementStatus, payStatus, chunk, currentOffset);
     }
