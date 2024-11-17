@@ -49,7 +49,7 @@ public class PaymentReader {
                 // 배치 작업 시작 시, Redis에 키가 없으면 초기값 설정
                 Boolean hasKey = redisTemplate.hasKey(OFFSET_KEY);
                 if (Boolean.FALSE.equals(hasKey)) {
-                    redisTemplate.opsForValue().set(OFFSET_KEY, "0");
+                    redisTemplate.opsForValue().set(OFFSET_KEY, "0", 60, TimeUnit.SECONDS);
                     log.info("Offset Initialize");
                 }
             }

@@ -39,7 +39,7 @@ public class JwtFilter implements WebFilter {
         if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login") ||
                 path.equals("/actuator/health") || path.equals("/actuator/prometheus")
                 || path.startsWith("/api/v1/users/sendmail") || path.startsWith("/api/v1/concerts/search")
-                || path.equals("/api/v1/concerts/search/autocomplete")) {
+                || path.equals("/api/v1/concerts/search/autocomplete") || path.startsWith("/api/v1/users/oauth/kakao")) {
             return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과
         }
 
