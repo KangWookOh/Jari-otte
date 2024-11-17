@@ -77,10 +77,6 @@ public class CouponService {
         return CouponResponseDto.from(savedCoupon);
     }
 
-    // 중복 발급 방지 메서드
-    public boolean isCouponAlreadyIssued(Long userId, Long couponId) {
-        return userCouponRepository.existsByUserIdAndCouponId(userId, couponId);
-    }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Caching(evict = {
@@ -179,8 +175,9 @@ public class CouponService {
                 throw new CouponOutOfStockException("모든 사용자에게 발급할 수량이 부족합니다.");
             }
 
-            // 각 사용자에게 쿠폰을 발급
+            // 중복 발급 체크 후 필터링
             List<UserCoupon> userCoupons = users.stream()
+                    .filter(user -> !isCouponAlreadyIssued(user.getId(), couponId))
                     .map(user -> UserCoupon.builder()
                             .userId(user.getId())
                             .couponId(originalCoupon.getId())
@@ -188,14 +185,26 @@ public class CouponService {
                             .isUsed(false)
                             .build())
                     .toList();
+
+            // 실제 발급될 쿠폰 수량 확인
+            int issuableCount = userCoupons.size();
+            if (issuableCount == 0) {
+                throw new DuplicateCouponException("모든 사용자가 이미 쿠폰을 보유하고 있습니다.");
+            }
+
             userCouponRepository.saveAll(userCoupons);
 
-            // 쿠폰 수량 감소 및 저장
-            originalCoupon.decreaseQuantity(users.size());
+            // 실제 발급된 수량만큼만 감소
+            originalCoupon.decreaseQuantity(issuableCount);
             couponsRepository.save(originalCoupon);
 
-            // 각 사용자별로 이벤트 발행
-            users.forEach(user -> {
+            // 쿠폰이 발급된 사용자에게만 이벤트 발행
+            userCoupons.forEach(userCoupon -> {
+                UserResponseDto user = users.stream()
+                        .filter(u -> u.getId().equals(userCoupon.getUserId()))
+                        .findFirst()
+                        .orElseThrow();
+
                 CouponEvent event = CouponEvent.builder()
                         .eventType("BULK_ISSUE")
                         .couponId(originalCoupon.getId())
@@ -214,8 +223,8 @@ public class CouponService {
 
             // 캐시 및 이벤트 갱신
             couponCacheService.clearAllUserCouponsCache();
-            users.forEach(user ->
-                    eventPublisher.publishEvent(new UserCouponsChangedEvent(this, user.getId())));
+            userCoupons.forEach(userCoupon ->
+                    eventPublisher.publishEvent(new UserCouponsChangedEvent(this, userCoupon.getUserId())));
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -298,30 +307,8 @@ public class CouponService {
         return Math.max(discountedPrice, 0);
     }
 
-    // 단일 쿠폰 발급 전 검증
-    public Coupon validateSingleCoupon(Long userId, String couponCode) {
-        UserResponseDto user = userClient.getUserById(userId).getData();
-        if (user == null) {
-            throw new UserNotFoundException("가입되지 않은 유저입니다.");
-        }
-
-        Coupon coupon = couponCacheService.findCouponByCouponCode(couponCode);
-        if (coupon.getCouponType() != CouponType.LIMIT) {
-            throw new CouponTypeMissMatched("쿠폰 타입을 다시 확인 해 주세요");
-        }
-
-        return coupon;
+    // 중복 발급 방지 메서드
+    public boolean isCouponAlreadyIssued(Long userId, Long couponId) {
+        return userCouponRepository.existsByUserIdAndCouponId(userId, couponId);
     }
-
-    // 대량 쿠폰 발급 전 검증
-    public Coupon validateBulkCoupon(Long couponId) {
-        Coupon coupon = couponCacheService.findCouponById(couponId);
-        if (coupon.getCouponType() != CouponType.ALL) {
-            throw new CouponTypeMissMatched("쿠폰 타입을 다시 확인 해 주세요");
-        }
-
-        return coupon;
-    }
-
-
 }
