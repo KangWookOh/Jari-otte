@@ -2,10 +2,12 @@ package com.eatpizzaquickly.reservationservice.reservation.dto;
 
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
+@Getter
 public class ReservationResponseDto {
     private Long concertId;
     private LocalDateTime createdAt;

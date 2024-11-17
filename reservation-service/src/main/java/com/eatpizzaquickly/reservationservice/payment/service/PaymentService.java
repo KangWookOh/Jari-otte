@@ -322,7 +322,8 @@ public class PaymentService {
     }
 
     public Page<PaymentSimpleResponse> getPayments(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+        int adjustedPage = Math.max(page - 1, 0); // 최소값 0으로 보정
+        Pageable pageable = PageRequest.of(adjustedPage, size);
         return paymentRepository.getPaymentByUserId(userId, pageable);
 
     }

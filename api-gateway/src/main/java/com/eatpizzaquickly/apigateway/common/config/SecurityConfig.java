@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/v1/venue", "/api/v1/concerts").hasAuthority("ADMIN")
                         .pathMatchers(HttpMethod.GET, "/api/v1/concerts/search/*").permitAll()
                         .pathMatchers(HttpMethod.PATCH, "/api/v1/concerts/*").hasAuthority("ADMIN")
+                        .pathMatchers(HttpMethod.PATCH,"/api/v1/users/oauth/kakao").permitAll()
                         .pathMatchers("/payment.html").permitAll()
                         .anyExchange().authenticated())  // 나머지는 인증 필요
                 .build();
@@ -51,8 +52,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // 프론트엔드 URL을 정확히 지정
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));
         config.setAllowCredentials(true);
