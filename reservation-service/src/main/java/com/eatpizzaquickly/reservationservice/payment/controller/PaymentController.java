@@ -83,13 +83,13 @@ public class PaymentController {
     }
 
     @GetMapping
-    public List<PaymentResponseDto> getPaymentsByStatus(
+    public List<PaymentResponseDto> getPaymentsByStatusAfterId(
             @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
             @RequestParam(name = "payStatus") PayStatus payStatus,
             @RequestParam(name = "size") int chunk,
             @RequestParam(name = "offset") int currentOffset
     ) {
-        return paymentService.getPaymentsByStatus(settlementStatus, payStatus, chunk, currentOffset);
+        return paymentService.getPaymentsByStatusAfterId(settlementStatus, payStatus, chunk, currentOffset);
     }
 
     @PutMapping

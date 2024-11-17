@@ -28,7 +28,7 @@ public class PaymentQueryDslRepositoryImpl implements PaymentQueryDslRepository 
     private final JPAQueryFactory queryFactory;
 
 
-    public Page<PaymentResponseDto> getPaymentsByStatus(
+    public Page<PaymentResponseDto> getPaymentsByStatusAfterId(
             SettlementStatus settlementStatus,
             PayStatus payStatus,
             LocalDateTime before,

@@ -297,11 +297,11 @@ public class PaymentService {
 
 
     @Transactional(readOnly = true)
-    public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentOffset) {
+    public List<PaymentResponseDto> getPaymentsByStatusAfterId(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentOffset) {
         // 7일
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
-        Page<PaymentResponseDto> payments = paymentRepository.getPaymentsByStatus(settlementStatus, payStatus, sevenDaysAgo, currentOffset, chunk);
+        Page<PaymentResponseDto> payments = paymentRepository.getPaymentsByStatusAfterId(settlementStatus, payStatus, sevenDaysAgo, currentOffset, chunk);
         return payments.getContent().stream()
                 .toList();
     }
@@ -326,4 +326,5 @@ public class PaymentService {
         return paymentRepository.getPaymentByUserId(userId, pageable);
 
     }
+
 }

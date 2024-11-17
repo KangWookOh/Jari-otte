@@ -13,6 +13,6 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 
 public interface PaymentQueryDslRepository {
-    Page<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, LocalDateTime sevenDaysAgo, int currentOffset, int chunk);
+    Page<PaymentResponseDto> getPaymentsByStatusAfterId(SettlementStatus settlementStatus, PayStatus payStatus, LocalDateTime sevenDaysAgo, int currentOffset, int chunk);
     Page<PaymentSimpleResponse> getPaymentByUserId(Long userId, Pageable pageable);
 }
