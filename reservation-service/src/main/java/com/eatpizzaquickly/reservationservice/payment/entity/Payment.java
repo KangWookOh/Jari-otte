@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "payments")
 @Getter
@@ -39,6 +41,8 @@ public class Payment extends Timestamped {
     @Column(name = "settlement_status")
     @Enumerated(EnumType.STRING)
     private SettlementStatus settlementStatus = SettlementStatus.UNSETTLED;
+
+    private LocalDateTime paidAt;
 
     public Payment(String pay_uid, Long price, String payInfo, PayMethod payMethod, PayStatus payStatus, Reservation reservation) {
         this.payUid = pay_uid;

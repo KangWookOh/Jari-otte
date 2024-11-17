@@ -6,9 +6,7 @@ import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
 import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentConfirmRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
-import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
-import com.eatpizzaquickly.reservationservice.payment.dto.response.TossPaymentResponse;
-import com.eatpizzaquickly.reservationservice.payment.dto.response.UserResponseDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.*;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayMethod;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
@@ -19,9 +17,11 @@ import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -176,6 +176,7 @@ public class PaymentService {
             throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
     public GetPaymentResponse tossPaymentFail(String code, String message, String orderId) {
         Payment payment = paymentRepository.findByPayUid(orderId)
                 .orElseThrow(() -> new RuntimeException("결제를 찾을 수 없습니다."));
@@ -287,5 +288,11 @@ public class PaymentService {
         }
 
         return response.getBody();
+    }
+
+
+    public Page<PaymentSimpleResponse> getPayments(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return paymentRepository.getPaymentByUserId(userId, pageable);
     }
 }
