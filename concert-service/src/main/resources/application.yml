@@ -41,7 +41,8 @@ spring:
       group-id: concert-group
     topic:
       reservation-created: seat.reservation.created
-      reservation-created-compensation: seat.reservation.create.compensation
+      reservation-created-compensation: seat.reservation.created.compensation
+      concert-updated: concert.updated
   elasticsearch:
     uris: localhost:9200
     username: "jari"
