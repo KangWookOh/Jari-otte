@@ -149,6 +149,15 @@ public class ConcertService {
         return concert.getHostId();
     }
 
+    @Transactional
+    public void updateConcert(Long concertId, ConcertUpdateRequest concertUpdateRequest) {
+        Concert concert = concertRepository.findById(concertId).orElseThrow(NotFoundException::new);
+        concert.updateTitle(concertUpdateRequest.getTitle());
+        concert.updateDescription(concertUpdateRequest.getDescription());
+        concert.updateThumbnailUrl(concertUpdateRequest.getThumbnailUrl());
+    }
+
+
     private void reloadSeatsFromDatabase(Long concertId) {
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
         List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();

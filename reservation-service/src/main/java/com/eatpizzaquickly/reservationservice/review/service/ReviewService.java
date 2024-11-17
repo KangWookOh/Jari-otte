@@ -34,7 +34,7 @@ public class ReviewService {
     @Transactional
     public ReviewResponseDto createReview(Long userId, Long concertId, ReviewRequestDto requestDto) {
         // 유저 ID로 유저 정보 요청
-        UserResponseDto userResponseDto = userServiceClientUser(userId);
+        ApiResponse<UserResponseDto> userResponseDto = userServiceClientUser(userId);
         // 유저 검증
         userException(userResponseDto);
 
@@ -51,8 +51,8 @@ public class ReviewService {
         Review review = Review.builder()
                 .rating(requestDto.getRating())
                 .content(requestDto.getContent())
-                .nickname(userResponseDto.getNickname())
-                .userEmail(userResponseDto.getEmail())
+                .nickname(userResponseDto.getData().getNickname())
+                .userEmail(userResponseDto.getData().getEmail())
                 .userId(userId)
                 .concertId(concertDetailResponse.getData().getConcertId())
                 .build();
@@ -78,7 +78,7 @@ public class ReviewService {
     @Transactional
     public ReviewResponseDto updateReview(Long userId, Long concertId, Long reviewId, ReviewRequestDto requestDto) {
         // 유저 ID로 유저 정보 요청
-        UserResponseDto userResponseDto = userServiceClientUser(userId);
+        ApiResponse<UserResponseDto> userResponseDto = userServiceClientUser(userId);
         // 유저 검증
         userException(userResponseDto);
 
@@ -103,7 +103,7 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long userId, Long concertId, Long reviewId) {
         // 유저 ID로 유저 정보 요청
-        UserResponseDto userResponseDto = userServiceClientUser(userId);
+        ApiResponse<UserResponseDto> userResponseDto = userServiceClientUser(userId);
         // 검증
         userException(userResponseDto);
 
@@ -123,14 +123,14 @@ public class ReviewService {
     }
 
     /* 유저 요청 */
-    private UserResponseDto userServiceClientUser(Long userId) {
+    private ApiResponse<UserResponseDto> userServiceClientUser(Long userId) {
         return userServiceClient.getUserById(userId);
     }
 
     /* 유저 검증 */
-    private void userException(UserResponseDto userResponseDto) {
+    private void userException(ApiResponse<UserResponseDto> userResponseDto) {
         // 검증
-        if (userResponseDto.getEmail() == null || !userResponseDto.getEmail().isEmpty()) {
+        if (userResponseDto.getData().getEmail() == null || userResponseDto.getData().getEmail().isEmpty()) {
             throw new NotFoundException("해당 유저 정보가 없습니다.");
         }
     }
@@ -169,8 +169,8 @@ public class ReviewService {
     }
 
     /* 리뷰 수정 권한 */
-    private void reviewUpdateException(String owner, UserResponseDto userResponseDto, String msg) {
-        if (!owner.equals(userResponseDto.getEmail())) {
+    private void reviewUpdateException(String owner, ApiResponse<UserResponseDto> userResponseDto, String msg) {
+        if (!owner.equals(userResponseDto.getData().getEmail())) {
             throw new UnauthorizedException(msg);
         }
     }

@@ -5,6 +5,7 @@ import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentRespon
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponses;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
@@ -28,13 +29,12 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/toss")
-    public ResponseEntity<String> requestPayment(
+    public ResponseEntity<PaymentResponses> requestPayment(
             @RequestBody PostPaymentRequest request,
             @RequestParam(name = "couponId", required = false) Long couponId
     ) {
-        String redirectUrl = paymentService.requestTossPayment(request, couponId);
-        // 리다이렉트 URL을 반환하도록 수정
-        return ResponseEntity.ok(redirectUrl);
+        PaymentResponses paymentResponse = paymentService.requestTossPayment(request, couponId);
+        return ResponseEntity.ok(paymentResponse);
     }
 
     /* 결제 성공 처리 */

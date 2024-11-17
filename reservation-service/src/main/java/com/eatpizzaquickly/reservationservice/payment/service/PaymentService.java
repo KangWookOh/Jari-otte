@@ -63,18 +63,20 @@ public class PaymentService {
     private String FAIL_URL;
 
     /* 결제 요청 */
-    public String requestTossPayment(PostPaymentRequest request, Long couponId) {
+    public PaymentResponses requestTossPayment(PostPaymentRequest request, Long couponId) {
         // 예약 확인
         Reservation reservation = reservationRepository.findById(request.getReservationId()).orElseThrow(
-                () -> new NotFoundException("예약을 찾을수 없습니다."));
+                () -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         // 주문 ID 생성
         String orderId = UUID.randomUUID().toString();
         Long price = request.getAmount();
-        //feignclient 호출로 수정
+
+        // FeignClient 호출로 쿠폰 적용
         if (couponId != null) {
-            price = couponFeignClient.applyCoupon(couponId, request.getAmount()); // 쿠폰 적용 값
+            price = couponFeignClient.applyCoupon(couponId, request.getAmount());
         }
+
         // DB 저장
         Payment payment = new Payment(
                 orderId,
@@ -110,18 +112,20 @@ public class PaymentService {
             );
 
             if (response.getBody() != null) {
-                String paymentKey = response.getBody().getPaymentKey();
-                // 리다이렉트 URL 생성
-                return SUCCESS_URL + "?orderId=" + orderId
-                        + "&paymentKey=" + paymentKey
-                        + "&amount=" + price;
+                TossPaymentResponse tossResponse = response.getBody();
+                return new PaymentResponses(
+                        orderId,
+                        tossResponse.getPaymentKey(),
+                        price,
+                        PayStatus.READY.name()
+                );
             }
         } catch (Exception e) {
             log.error("토스 결제 요청 실패: ", e);
             throw new PaymentException("결제 요청 중 오류가 발생했습니다.");
         }
 
-        return null;
+        throw new PaymentException("결제 요청 실패: 응답이 비어 있습니다.");
     }
 
     @Transactional

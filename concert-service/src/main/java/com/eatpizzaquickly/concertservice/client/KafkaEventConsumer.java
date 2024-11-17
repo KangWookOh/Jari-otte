@@ -1,6 +1,7 @@
 package com.eatpizzaquickly.concertservice.client;
 
 import com.eatpizzaquickly.concertservice.service.SeatService;
+import com.eatpizzaquickly.concertservice.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +15,15 @@ import org.springframework.stereotype.Component;
 public class KafkaEventConsumer {
     private final SeatService seatService;
     private final ObjectMapper objectMapper;
+    private final JsonUtil jsonUtil;
 
     @KafkaListener(
             topics = "${spring.kafka.topic.reservation-created-compensation}", groupId = "${spring.kafka.consumer.group-id}"
     )
     public void consumeSeatReservationCreatedCompensationEvent(String message) throws JsonProcessingException {
         log.info("보상 트랜잭션 이벤트 수신: {}", message);
-        ReservationCompensationEvent event = objectMapper.readValue(message, ReservationCompensationEvent.class);
+//        ReservationCompensationEvent event = objectMapper.readValue(message, ReservationCompensationEvent.class);
+        ReservationCompensationEvent event = jsonUtil.toObject(message, ReservationCompensationEvent.class);
         seatService.compensateReservation(event);
     }
 }

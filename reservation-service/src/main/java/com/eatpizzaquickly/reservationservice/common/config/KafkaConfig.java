@@ -57,6 +57,7 @@ public class KafkaConfig {
         myConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         myConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         myConfig.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        myConfig.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         return new DefaultKafkaConsumerFactory<>(myConfig);
     }
 
