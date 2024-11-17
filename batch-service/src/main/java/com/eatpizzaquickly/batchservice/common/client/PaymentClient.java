@@ -16,11 +16,11 @@ import java.util.List;
 @FeignClient(name = "reservation-service")
 public interface PaymentClient {
     @GetMapping("/api/v1/payments")
-    List<PaymentResponseDto> getPaymentsByStatus(
+    List<PaymentResponseDto> getPaymentsByStatusAfterId(
             @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
             @RequestParam(name = "payStatus") PayStatus payStatus,
             @RequestParam(name = "size") int chunk,
-            @RequestParam(name = "page") int currentPage);
+            @RequestParam(name = "offset") int currentOffset);
 
     @PutMapping("/api/v1/payments")
     ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments);

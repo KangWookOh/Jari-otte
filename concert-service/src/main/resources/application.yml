@@ -73,3 +73,6 @@ logging:
   level:
     root: info
   config: classpath:logback-concert.xml
+
+webhooks:
+  url: ${WEBHOOKS_URL}

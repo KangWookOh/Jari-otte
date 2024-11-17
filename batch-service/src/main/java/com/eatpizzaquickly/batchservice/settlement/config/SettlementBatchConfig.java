@@ -87,16 +87,6 @@ public class SettlementBatchConfig {
                 .build();
     }
 
-    public Step settlementSettledStep() {
-        return new StepBuilder("settlementSettledStep", jobRepository)
-                .<TempPayment, TempPayment>chunk(CHUNK_SIZE, transactionManager)
-                .reader(paymentReader.settlementSettledReader())
-                .processor(paymentProcessor.settlementSettledProcessor())
-                .writer(paymentWriter.tempPaymentWriter())
-                .listener(stepLoggingListener)
-                .build();
-    }
-
     public Step updatePaymentWithTestPaymentStep() {
         return new StepBuilder("updatePaymentWithTestPaymentStep", jobRepository)
                 .<TempPayment, PaymentRequestDto>chunk(CHUNK_SIZE, transactionManager)

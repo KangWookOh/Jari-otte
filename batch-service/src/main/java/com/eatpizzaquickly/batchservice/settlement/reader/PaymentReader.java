@@ -16,11 +16,14 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.CHUNK_SIZE;
 
@@ -32,48 +35,50 @@ public class PaymentReader {
     private final PaymentClient paymentClient;
     private final TempPaymentRepository tempPaymentRepository;
     private final EntityManagerFactory entityManagerFactory;
-    private static final String CURRENT_PAGE_KEY = "currentPage";
-    private static final String CURRENT_INDEX_KEY = "currentIndex";
+    private static final String OFFSET_KEY = "current_offset";
+    private final RedisTemplate<String, String> redisTemplate;
 
     public ItemReader<PaymentResponseDto> paidPaymentReader() {
         return new ItemReader<PaymentResponseDto>() {
-
             private List<PaymentResponseDto> currentChunk = new ArrayList<>();
-            private ExecutionContext executionContext;
-            private int currentPage;
 
             @BeforeStep
-            public void saveStepExecution(StepExecution stepExecution) {
-                this.executionContext = stepExecution.getExecutionContext();
-                this.currentPage = executionContext.containsKey(CURRENT_PAGE_KEY)
-                        ? executionContext.getInt(CURRENT_PAGE_KEY) : 0;
-
-                log.info("Initial Current Page: {}", currentPage);
+            public void initializeOffset(StepExecution stepExecution) {
+                // 배치 작업 시작 시, Redis에 키가 없으면 초기값 설정
+                Boolean hasKey = redisTemplate.hasKey(OFFSET_KEY);
+                if (Boolean.FALSE.equals(hasKey)) {
+                    redisTemplate.opsForValue().set(OFFSET_KEY, "1");
+                    log.info("Offset Initialize");
+                }
             }
 
             @Override
             public PaymentResponseDto read() {
-                // 현재 청크가 비었거나 모든 아이템을 처리한 경우 다음 페이지의 데이터를 가져옴
+                // currentChunk가 비었을 경우 새로운 데이터를 가져옴
                 if (currentChunk.isEmpty()) {
-                    log.info("Fetching new chunk of payments at page {}", currentPage);
-                    currentChunk = paymentClient.getPaymentsByStatus(SettlementStatus.UNSETTLED, PayStatus.PAID, CHUNK_SIZE, currentPage);
+                    int currentOffset = Math.toIntExact(getAndIncrementOffset(CHUNK_SIZE)); //Long to int
+                    log.info("현재 작업 Offset {}", currentOffset);
 
-                    // 데이터를 모두 처리한 경우 null 반환하여 종료
+                    // ID를 기준으로 하는 ZeroOffsetReader로 변경
+                    currentChunk = paymentClient.getPaymentsByStatusAfterId(
+                            SettlementStatus.UNSETTLED, PayStatus.PAID, CHUNK_SIZE, currentOffset);
+
+                    // 데이터가 없으면 null 반환
                     if (currentChunk.isEmpty()) {
-                        log.info("No more data available at page {}", currentPage);
+                        log.info("Offset {} 데이터 처리 완료", currentOffset);
                         return null;
                     }
-
-                    // 페이지 증가 후 ExecutionContext에 저장
-                    currentPage++;
-                    executionContext.putInt(CURRENT_PAGE_KEY, currentPage);
-                    log.info("Updated Current Page to: {}", currentPage);
                 }
 
-                // 첫 번째 데이터를 반환하고, 이후 제거 (다음 read 호출 시 새로운 데이터 제공)
-                PaymentResponseDto nextPayment = currentChunk.remove(0);
-                log.info("Processing PaymentResponseDto: {}", nextPayment);
-                return nextPayment;
+                // 첫 번째 데이터를 반환하고, 리스트에서 제거
+                PaymentResponseDto paymentResponseDto = currentChunk.remove(0);
+                log.info("Processing PaymentResponseDto: {}", paymentResponseDto);
+                return paymentResponseDto;
+            }
+
+            private Long getAndIncrementOffset(int increment) {
+                // Redis에서 offset 증가 후 진행할 Offset 반환
+                return redisTemplate.opsForValue().increment(OFFSET_KEY, CHUNK_SIZE) - CHUNK_SIZE;
             }
         };
     }
@@ -91,7 +96,7 @@ public class PaymentReader {
 
     @Bean
     public JpaPagingItemReader<TempPayment> settlementSettledReader() {
-        return createReader("settlementSettledReader",SettlementStatus.PROGRESS);
+        return createReader("settlementSettledReader", SettlementStatus.PROGRESS);
     }
 
     private JpaPagingItemReader<TempPayment> createReader(String name, SettlementStatus status) {
@@ -103,7 +108,6 @@ public class PaymentReader {
                 .parameterValues(Collections.singletonMap("status", status))
                 .build();
     }
-
 
 
 }

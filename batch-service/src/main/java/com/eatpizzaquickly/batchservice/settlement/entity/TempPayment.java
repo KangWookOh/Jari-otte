@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(uniqueConstraints = {
+        @UniqueConstraint(
+                columnNames = { "paymentId" }) })
 public class TempPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

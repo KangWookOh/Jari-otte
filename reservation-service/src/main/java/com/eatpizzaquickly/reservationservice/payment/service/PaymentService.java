@@ -295,14 +295,12 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentPage) {
+    public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentOffset) {
         // 7일
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
-        Pageable pageable = PageRequest.of(currentPage, chunk);
-        Page<Payment> payments = paymentRepository.findBySettlementStatusAndPayStatusAndPaidAtBeforeOrderByIdAsc(settlementStatus, payStatus, sevenDaysAgo, pageable);
+        Page<PaymentResponseDto> payments = paymentRepository.getPaymentsByStatus(settlementStatus, payStatus, sevenDaysAgo, currentOffset, chunk);
         return payments.getContent().stream()
-                .map(PaymentResponseDto::from)
                 .toList();
     }
 

@@ -84,9 +84,9 @@ public class PaymentController {
             @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
             @RequestParam(name = "payStatus") PayStatus payStatus,
             @RequestParam(name = "size") int chunk,
-            @RequestParam(name = "page") int currentPage
+            @RequestParam(name = "offset") int currentOffset
     ) {
-        return paymentService.getPaymentsByStatus(settlementStatus, payStatus, chunk, currentPage);
+        return paymentService.getPaymentsByStatus(settlementStatus, payStatus, chunk, currentOffset);
     }
 
     @PutMapping
