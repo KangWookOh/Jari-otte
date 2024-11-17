@@ -48,6 +48,7 @@ public class KafkaConfig {
         myconfig.put(ProducerConfig.RETRIES_CONFIG, 3);
         myconfig.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 3000);
         myconfig.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 30000);
+        myconfig.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "tx-");
         return new DefaultKafkaProducerFactory<>(myconfig);
     }
 
