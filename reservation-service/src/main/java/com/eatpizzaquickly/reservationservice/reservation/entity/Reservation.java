@@ -33,13 +33,16 @@ public class Reservation {
 
     private Long seatId;
 
+    private Integer seatNumber;
+
     private Long concertId;
 
     @Builder
-    public Reservation(int price, Long userId, Long seatId, ReservationStatus reservationStatus, Long concertId) {
+    public Reservation(int price, Long userId, Long seatId, Integer seatNumber, ReservationStatus reservationStatus, Long concertId) {
         this.price = price;
         this.userId = userId;
         this.seatId = seatId;
+        this.seatNumber = seatNumber;
         this.status = reservationStatus;
         this.concertId = concertId;
         this.createdAt = LocalDateTime.now();

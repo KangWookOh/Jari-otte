@@ -35,6 +35,7 @@ public class ReservationService {
                     .price(request.getPrice())
                     .userId(request.getUserId())
                     .seatId(request.getSeatId())
+                    .seatNumber(request.getSeatNumber())
                     .reservationStatus(ReservationStatus.PENDING)
                     .concertId(request.getConcertId())
                     .build();

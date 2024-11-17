@@ -9,9 +9,10 @@ public class ReservationCreateRequest {
     private int price;
     private Long concertId;
     private Long seatId;
+    private Integer seatNumber;
     private Long userId;
 
     public static ReservationCreateRequest from(SeatReservationEvent event) {
-        return new ReservationCreateRequest(event.getPrice(), event.getConcertId(), event.getSeatId(), event.getUserId());
+        return new ReservationCreateRequest(event.getPrice(), event.getConcertId(), event.getSeatId(), event.getSeatNumber(), event.getUserId());
     }
 }

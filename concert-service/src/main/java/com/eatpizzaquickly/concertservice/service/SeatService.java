@@ -81,15 +81,16 @@ public class SeatService {
             SeatReservationEvent reservationEvent = SeatReservationEvent.builder()
                     .userId(userId)
                     .seatId(seatId)
+                    .seatNumber(seat.getSeatNumber())
                     .concertId(concertId)
                     .price(request.getPrice())
                     .build();
 
-            kafkaEventProducer.produceSeatReservationEvent(reservationEvent);
-
             queueRedisRepository.removeFromReservation(concertId, userId);
 
             processNextUserInQueue(concertId);
+
+            kafkaEventProducer.produceSeatReservationEvent(reservationEvent);
 
         } catch (Exception e) {
             concertRedisRepository.addSeatBackToAvailable(concertId, seatId);
