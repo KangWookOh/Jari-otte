@@ -49,4 +49,16 @@ public class ConcertSearch {
         this.startDate = startDate;
         this.endDate = endDate;
     }
+
+    public static ConcertSearch from(Concert concert) {
+        return new ConcertSearch(
+                concert.getId(),
+                concert.getTitle(),
+                concert.getArtists(),
+                concert.getCategory(),
+                concert.getDeleted(),
+                concert.getStartDate(),
+                concert.getEndDate()
+        );
+    }
 }
