@@ -27,7 +27,7 @@ public class PaymentQueryDslRepositoryImpl implements PaymentQueryDslRepository 
                         payment.payStatus,
                         payment.reservation.concertId))
                 .from(payment)
-                .leftJoin(payment.reservation).fetchJoin()
+                .leftJoin(payment.reservation)
                 .where(
                         eqUserId(userId)
                 )
@@ -38,7 +38,7 @@ public class PaymentQueryDslRepositoryImpl implements PaymentQueryDslRepository 
 
         Long count = queryFactory.select(payment.count())
                 .from(payment)
-                .leftJoin(payment.reservation).fetchJoin()
+                .leftJoin(payment.reservation)
                 .where(
                         eqUserId(userId)
                 )
