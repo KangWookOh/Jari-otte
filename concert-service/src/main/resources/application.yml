@@ -40,6 +40,8 @@ spring:
       reservation-created-compensation: seat.reservation.create.compensation
   elasticsearch:
     uris: localhost:9200
+    username: "jari"
+    password: "jariotte1123"
 
 cloud:
   aws:

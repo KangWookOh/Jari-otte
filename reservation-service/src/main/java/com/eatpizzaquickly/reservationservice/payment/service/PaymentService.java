@@ -4,12 +4,18 @@ import com.eatpizzaquickly.reservationservice.common.config.TossPaymentConfig;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
 import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
+import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentConfirmRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.TossPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.UserResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.*;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayMethod;
 import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
+import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.payment.exception.*;
 import com.eatpizzaquickly.reservationservice.payment.kafka.PaymentEventProducer;
 import com.eatpizzaquickly.reservationservice.payment.repository.PaymentRepository;
@@ -28,10 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -136,6 +140,7 @@ public class PaymentService {
             // 3. 결제 성공 처리
             payment.setPayStatus(PayStatus.PAID);
             payment.setPaymentKey(tossResponse.getPaymentKey());
+            payment.setPaidAt(LocalDateTime.now());
             paymentRepository.save(payment);
 
             // 예약 상태 업데이트
@@ -291,8 +296,33 @@ public class PaymentService {
     }
 
 
+    @Transactional(readOnly = true)
+    public List<PaymentResponseDto> getPaymentsByStatus(SettlementStatus settlementStatus, PayStatus payStatus, int chunk, int currentOffset) {
+        // 7일
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+        Page<PaymentResponseDto> payments = paymentRepository.getPaymentsByStatus(settlementStatus, payStatus, sevenDaysAgo, currentOffset, chunk);
+        return payments.getContent().stream()
+                .toList();
+    }
+
+    @Transactional
+    public void updatePayments(List<PaymentRequestDto> payments) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        List<Payment> paymentList = payments.stream()
+                .map(paymentRequestDto -> {
+                    Payment payment = paymentRepository.findById(paymentRequestDto.getId())
+                            .orElseThrow(() -> new PaymentNotFoundException("결제 내역이 없습니다."));
+                    payment.setSettlementStatus(paymentRequestDto.getSettlementStatus());
+                    payment.setSettledAt(currentTime);
+                    return payment;
+                }).toList();
+
+        paymentRepository.saveAll(paymentList);
+
     public Page<PaymentSimpleResponse> getPayments(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         return paymentRepository.getPaymentByUserId(userId, pageable);
+
     }
 }

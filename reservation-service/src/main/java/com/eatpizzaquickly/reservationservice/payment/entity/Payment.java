@@ -42,6 +42,8 @@ public class Payment extends Timestamped {
     @Enumerated(EnumType.STRING)
     private SettlementStatus settlementStatus = SettlementStatus.UNSETTLED;
 
+    private LocalDateTime settledAt;
+
     private LocalDateTime paidAt;
 
     public Payment(String pay_uid, Long price, String payInfo, PayMethod payMethod, PayStatus payStatus, Reservation reservation) {
@@ -63,5 +65,13 @@ public class Payment extends Timestamped {
 
     public void setSettlementStatus(SettlementStatus settlementStatus) {
         this.settlementStatus = settlementStatus;
+    }
+
+    public void setPaidAt(LocalDateTime currentTime) {
+        this.paidAt = currentTime;
+    }
+
+    public void setSettledAt(LocalDateTime currentTime) {
+        this.settledAt = currentTime;
     }
 }
