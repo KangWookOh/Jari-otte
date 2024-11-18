@@ -30,7 +30,7 @@ spring:
       port: 6379
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
     producer:
       retries: 3
       acks: all
