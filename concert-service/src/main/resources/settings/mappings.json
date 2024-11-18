@@ -31,6 +31,10 @@
       },
       "deleted": {
         "type": "boolean"
+      },
+      "thumbnailUrl": {
+        "type": "keyword",
+        "index": false
       }
     }
   }

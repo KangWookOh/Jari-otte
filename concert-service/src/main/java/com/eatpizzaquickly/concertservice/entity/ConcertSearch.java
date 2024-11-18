@@ -28,6 +28,8 @@ public class ConcertSearch {
 
     private Category category; // 카테고리 Enum 타입 필드
 
+    private String thumbnailUrl; // 사진 URL
+
     private Boolean deleted; // 삭제 여부 필드
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
@@ -46,11 +48,12 @@ public class ConcertSearch {
     private LocalDateTime endDate;
 
     // 생성자 또는 다른 메서드에서 startDate와 endDate를 명시적으로 초기화
-    public ConcertSearch(Long concertId, String title, List<String> artists, Category category, Boolean deleted, LocalDateTime performDate, LocalDateTime startDate, LocalDateTime endDate) {
+    public ConcertSearch(Long concertId, String title, List<String> artists, Category category, String thumbnailUrl, Boolean deleted, LocalDateTime performDate, LocalDateTime startDate, LocalDateTime endDate) {
         this.concertId = concertId;
         this.title = title;
         this.artists = artists;
         this.category = category;
+        this.thumbnailUrl = thumbnailUrl;
         this.deleted = deleted;
         this.performDate = performDate;
         this.startDate = startDate;
@@ -63,6 +66,7 @@ public class ConcertSearch {
                 concert.getTitle(),
                 concert.getArtists(),
                 concert.getCategory(),
+                concert.getThumbnailUrl(),
                 concert.getDeleted(),
                 concert.getPerformDate(),
                 concert.getStartDate(),
