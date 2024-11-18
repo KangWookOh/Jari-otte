@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -40,7 +39,9 @@ public class JwtFilter implements WebFilter {
         if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login")
                 || path.equals("/actuator/health") || path.equals("/actuator/prometheus")
                 || path.startsWith("/api/v1/users/sendmail") || path.startsWith("/api/v1/concerts/search")
-                || path.equals("/api/v1/concerts/search/autocomplete") || path.equals("/api/v1/concerts/popular")
+                || path.equals("/api/v1/concerts/search/autocomplete") || path.equals("/api/v1/users/oauth/kakao")
+                || path.equals("/api/v1/users//oauth/kakao/callback/")
+                || path.equals("/api/v1/concerts/popular")
                 || path.startsWith("/api/v1/concerts/")
                 || (HttpMethod.GET.equals(request.getMethod()) && path.equals("/api/v1/concerts"))
         ) {

@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
+import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
 import com.eatpizzaquickly.concertservice.entity.Category;
@@ -148,6 +149,15 @@ public class ConcertService {
         );
         return concert.getHostId();
     }
+
+    @Transactional
+    public void updateConcert(Long concertId, ConcertUpdateRequest concertUpdateRequest) {
+        Concert concert = concertRepository.findById(concertId).orElseThrow(NotFoundException::new);
+        concert.updateTitle(concertUpdateRequest.getTitle());
+        concert.updateDescription(concertUpdateRequest.getDescription());
+        concert.updateThumbnailUrl(concertUpdateRequest.getThumbnailUrl());
+    }
+
 
     private void reloadSeatsFromDatabase(Long concertId) {
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);

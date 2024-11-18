@@ -34,15 +34,21 @@ public class KakaoController {
     }
 
     @GetMapping("/oauth/kakao/callback")
-    public ResponseEntity<ApiResponse<String>> callback(@RequestParam("code") String code) {
-        // 토큰 발급
+    public String callback(@RequestParam("code") String code) {
+        // 1. 카카오 토큰 발급
         String kakaoToken = kakaoService.getAccessToken(code);
-        // 유저 정보 가져오기
+
+        // 2. 카카오 유저 정보 가져오기
         KakaoUserDto kakaoUser = kakaoService.getKakaoUser(kakaoToken);
-        // 로그인 & 회원가입 진행
-        String token = userService.kakaoLogin(kakaoUser);
-        return ResponseEntity.ok()
-                .header("Authorization", "Bearer " + token)
-                .body(ApiResponse.success("카카오 로그인 성공", token));
+
+        // 3. 로그인 또는 회원가입 처리 후 JWT 발급
+        String jwtToken = userService.kakaoLogin(kakaoUser);
+
+        // 4. 리다이렉트 URL 구성
+        String redirectUrl = "http://localhost:5173/?token=" + jwtToken;
+
+        // 5. 리다이렉트
+        return "redirect:" + redirectUrl;
     }
+
 }

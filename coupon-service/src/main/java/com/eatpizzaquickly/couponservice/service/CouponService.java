@@ -247,10 +247,9 @@ public class CouponService {
         }
 
         return activeUserCoupons.stream()
-                .map(userCoupon -> {
-                    Coupon coupon = couponCacheService.findCouponById(userCoupon.getCouponId());
-                    return CouponResponseDto.from(coupon);
-                })
+                .map(userCoupon -> couponCacheService.findCouponById(userCoupon.getCouponId()))
+                .filter(coupon -> Boolean.TRUE.equals(coupon.getIsActive())) // 활성 상태 필터링
+                .map(CouponResponseDto::from)
                 .toList();
     }
 

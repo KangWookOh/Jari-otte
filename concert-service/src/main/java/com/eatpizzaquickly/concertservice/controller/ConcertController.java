@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.controller;
 
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
+import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
@@ -79,5 +80,12 @@ public class ConcertController {
         int limit = 10;
         List<ConcertSimpleDto> topViewedConcerts = concertService.getTopViewedConcerts(limit);
         return ResponseEntity.ok(ApiResponse.success("인기 콘서트 조회 성공", PopularConcertResponse.of(topViewedConcerts)));
+    }
+
+    @PutMapping("/{concertId}")
+    public ResponseEntity<ApiResponse<Void>> updateConcert(@PathVariable Long concertId,
+                                                           @RequestBody ConcertUpdateRequest concertUpdateRequest) {
+        concertService.updateConcert(concertId, concertUpdateRequest);
+        return ResponseEntity.ok(ApiResponse.success("공연 업데이트 성공"));
     }
 }

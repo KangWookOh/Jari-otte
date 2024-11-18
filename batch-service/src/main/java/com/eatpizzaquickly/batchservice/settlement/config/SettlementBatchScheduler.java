@@ -20,7 +20,7 @@ public class SettlementBatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job settlementBatchJob;
 
-    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 5000)
+    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 10000)
     public void runBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

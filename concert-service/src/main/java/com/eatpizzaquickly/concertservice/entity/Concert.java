@@ -95,4 +95,14 @@ public class Concert {
     public void updateSeatCount(int seatCount) {
         this.seatCount = seatCount;
     }
+
+    public void updateTitle(String title) {this.title = title;}
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }

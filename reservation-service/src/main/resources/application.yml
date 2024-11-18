@@ -24,12 +24,12 @@ spring:
         format_sql: false
 
   kafka:
-    bootstrap-servers: localhost:19092, localhost:19093, localhost:19094
+    bootstrap-servers: localhost:9092
     topic:
       payment-events: payment-events
       reservation-events: reservation-events
       reservation-created: seat.reservation.created
-      reservation-created-compensation: seat.reservation.create.compensation
+      reservation-created-compensation: seat.reservation.created.compensation
     consumer:
       group-id: reservation-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -55,7 +55,7 @@ payment:
   toss:
     url: "https://api.tosspayments.com/v1/payments"
     test_client_api_key: test_ck_d46qopOB896o7NDMkGm73ZmM75y0
-    test_secret_api_key: test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R
+    test_secret_api_key: test_sk_KNbdOvk5rkm6kdBBpzMz3n07xlzm
     success_url: "http://localhost:8080/api/v1/payments/toss/success"
     fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
 

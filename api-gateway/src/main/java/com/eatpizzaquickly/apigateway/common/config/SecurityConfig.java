@@ -45,7 +45,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/v1/concerts", "/api/v1/concerts/popular",
                                 "/api/v1/concerts/*", "/api/v1/concerts/category/*").permitAll()
                         .pathMatchers(HttpMethod.PATCH, "/api/v1/concerts/*").hasAuthority("ADMIN")
-                        .pathMatchers(HttpMethod.PATCH,"/api/v1/users/oauth/kakao").permitAll()
+                        .pathMatchers("/api/v1/users/oauth/kakao").permitAll()
+                        .pathMatchers("/api/v1/users//oauth/kakao/callback/").permitAll()
                         .pathMatchers("/payment.html").permitAll()
                         .anyExchange().authenticated())  // 나머지는 인증 필요
                 .build();
