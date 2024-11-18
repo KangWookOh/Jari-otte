@@ -70,6 +70,7 @@ public class SearchService {
                     .index("concerts")                      // 검색할 인덱스 이름
                     .query(Query.of(q -> q.bool(boolQuery)))      // 위에서 구성한 BoolQuery를 사용
                     .from((int) pageable.getOffset())             // 검색 시작 위치 설정 (페이지네이션의 offset)
+                    .minScore(0.5)                          // 최소 스코어 설정
                     .size(pageable.getPageSize())                 // 한 페이지에 포함될 문서 수 설정
             );
 
