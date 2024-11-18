@@ -24,7 +24,7 @@ spring:
         format_sql: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
     topic:
       payment-events: payment-events
       reservation-events: reservation-events
