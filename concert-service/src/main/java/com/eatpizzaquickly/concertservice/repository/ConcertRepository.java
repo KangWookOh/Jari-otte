@@ -10,7 +10,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long>, ConcertCustomRepository {
 
@@ -20,6 +22,9 @@ public interface ConcertRepository extends JpaRepository<Concert, Long>, Concert
     Page<Concert> findAllByCategory(Category name, Pageable pageable);
 
     List<Concert> findByEndDateBefore(LocalDate endDate);
+
+    @Query("SELECT c.id, c.hostId FROM Concert c WHERE c.id IN :concertIds")
+    Map<Long, Long> findHostIdsByConcertIds(Set<Long> concertIds);
 
 
     // 삭제

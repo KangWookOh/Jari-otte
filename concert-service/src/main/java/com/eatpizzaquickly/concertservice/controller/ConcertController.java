@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.controller;
 
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
+import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/concerts")
@@ -40,8 +43,8 @@ public class ConcertController {
     }
 
     @GetMapping("/{concertId}/host")
-    public Long findHostIdByConcertId(@PathVariable(name = "concertId") Long concertId) {
-        return concertService.findHostIdByConcertId(concertId);
+    public ResponseEntity<Map<Long,Long>> findHostIdsByConcertIds(@RequestBody Set<Long> concertIds){
+        return ResponseEntity.ok(concertService.findHostIdsByConcertIds(concertIds));
     }
 
     ;
@@ -79,6 +82,7 @@ public class ConcertController {
         int limit = 10;
         List<ConcertSimpleDto> topViewedConcerts = concertService.getTopViewedConcerts(limit);
         return ResponseEntity.ok(ApiResponse.success("인기 콘서트 조회 성공", PopularConcertResponse.of(topViewedConcerts)));
+    }
 
     @PutMapping("/{concertId}")
     public ResponseEntity<ApiResponse<Void>> updateConcert(@PathVariable Long concertId,

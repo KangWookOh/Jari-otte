@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
+import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
 import com.eatpizzaquickly.concertservice.entity.Category;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -141,12 +144,9 @@ public class ConcertService {
 
 
     @Transactional(readOnly = true)
-    public Long findHostIdByConcertId(Long concertId) {
-        log.info("콘서트 ID : {}", concertId);
-        Concert concert = concertRepository.findById(concertId).orElseThrow(
-                () -> new NotFoundException("콘서트가 없습니다.")
-        );
-        return concert.getHostId();
+    public Map<Long,Long> findHostIdsByConcertIds(Set<Long> concertIds) {
+        log.info("콘서트 ID : {}", concertIds);
+        return concertRepository.findHostIdsByConcertIds(concertIds);
     }
 
     @Transactional
