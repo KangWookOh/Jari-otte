@@ -13,6 +13,7 @@ public class SearchConcertResponseDto {
     private Long concertId;
     private String title;
     private List<String> artists;
+    private String thumbnailUrl;
     private LocalDateTime performDate;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -22,6 +23,7 @@ public class SearchConcertResponseDto {
                 concertSearch.getConcertId(),
                 concertSearch.getTitle(),
                 concertSearch.getArtists(),
+                concertSearch.getThumbnailUrl(),
                 concertSearch.getPerformDate(),
                 concertSearch.getStartDate(),
                 concertSearch.getEndDate());
