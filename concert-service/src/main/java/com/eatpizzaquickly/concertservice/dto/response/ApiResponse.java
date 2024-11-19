@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.batchservice.common.advice;
+package com.eatpizzaquickly.concertservice.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
