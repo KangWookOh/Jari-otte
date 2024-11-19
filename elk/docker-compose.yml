@@ -12,11 +12,12 @@ services:
       - 9300:9300
     volumes:
       - ./elasticsearch:/usr/share/elasticsearch/data
+    user: "1000:1000"
     # Elastic search 계정정보
     environment:
       discovery.type: single-node
-      xpack.security.enabled: false
-      xpack.security.transport.ssl.enabled: false
+      xpack.security.enabled: "false"
+      xpack.security.transport.ssl.enabled: "false"
       ELASTIC_USERNAME: "jari"
       ELASTIC_PASSWORD: "jariotte1123"
     networks:
