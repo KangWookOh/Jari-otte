@@ -1,6 +1,6 @@
 package com.eatpizzaquickly.userservice.dto;
 import com.eatpizzaquickly.userservice.entity.User;
-import com.eatpizzaquickly.userservice.entity.UserRole;
+import com.eatpizzaquickly.userservice.enums.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

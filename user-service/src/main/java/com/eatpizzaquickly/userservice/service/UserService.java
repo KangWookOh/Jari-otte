@@ -8,7 +8,7 @@ import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
 import com.eatpizzaquickly.userservice.entity.User;
-import com.eatpizzaquickly.userservice.entity.UserRole;
+import com.eatpizzaquickly.userservice.enums.UserRole;
 import com.eatpizzaquickly.userservice.exception.*;
 import com.eatpizzaquickly.userservice.repository.HostBalanceJdbcRepository;
 import com.eatpizzaquickly.userservice.repository.HostBalanceRepository;

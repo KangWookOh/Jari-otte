@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.reservationservice.payment.entity;
+package com.eatpizzaquickly.reservationservice.common.enums;
 
 
 import lombok.Getter;

@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.reservationservice.reservation.entity;
 
+import com.eatpizzaquickly.reservationservice.common.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

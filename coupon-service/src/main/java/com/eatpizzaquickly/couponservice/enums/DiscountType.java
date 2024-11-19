@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.couponservice.entity;
+package com.eatpizzaquickly.couponservice.enums;
 
 public enum DiscountType {
     PERCENTAGE,AMOUNT;

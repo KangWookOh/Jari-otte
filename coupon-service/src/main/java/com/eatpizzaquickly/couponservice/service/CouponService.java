@@ -1,14 +1,13 @@
 package com.eatpizzaquickly.couponservice.service;
 
-import com.eatpizzaquickly.couponservice.client.ApiResponse;
 import com.eatpizzaquickly.couponservice.client.UserClient;
 import com.eatpizzaquickly.couponservice.common.config.UserCouponsChangedEvent;
 import com.eatpizzaquickly.couponservice.dto.CouponRequestDto;
 import com.eatpizzaquickly.couponservice.dto.CouponResponseDto;
 import com.eatpizzaquickly.couponservice.dto.UserResponseDto;
 import com.eatpizzaquickly.couponservice.entity.Coupon;
-import com.eatpizzaquickly.couponservice.entity.CouponType;
-import com.eatpizzaquickly.couponservice.entity.DiscountType;
+import com.eatpizzaquickly.couponservice.enums.CouponType;
+import com.eatpizzaquickly.couponservice.enums.DiscountType;
 import com.eatpizzaquickly.couponservice.entity.UserCoupon;
 import com.eatpizzaquickly.couponservice.exception.*;
 import com.eatpizzaquickly.couponservice.kafka.CouponEvent;
@@ -39,7 +38,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Service

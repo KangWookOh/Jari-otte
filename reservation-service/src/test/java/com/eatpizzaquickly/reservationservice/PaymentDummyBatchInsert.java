@@ -1,9 +1,9 @@
 package com.eatpizzaquickly.reservationservice;
 
-import com.eatpizzaquickly.reservationservice.payment.entity.PayMethod;
-import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
-import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
-import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.PayMethod;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.ReservationStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

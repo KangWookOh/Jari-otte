@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.concertservice.service;
 
+import com.eatpizzaquickly.concertservice.client.RedisCachePublisher;
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
@@ -7,10 +8,10 @@ import com.eatpizzaquickly.concertservice.dto.request.HostIdRequestDto;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertHostResponseDto;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
-import com.eatpizzaquickly.concertservice.entity.Category;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
 import com.eatpizzaquickly.concertservice.entity.Venue;
+import com.eatpizzaquickly.concertservice.enums.Category;
 import com.eatpizzaquickly.concertservice.exception.NotFoundException;
 import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
@@ -18,7 +19,6 @@ import com.eatpizzaquickly.concertservice.repository.SeatRepository;
 import com.eatpizzaquickly.concertservice.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +37,9 @@ public class ConcertService {
     private final SeatRepository seatRepository;
     private final ConcertRedisRepository concertRedisRepository;
     private final SearchService searchService;
+    private final RedisCachePublisher redisCachePublisher;
+
+    private static final int TOP_CONCERT_LIMIT = 10;
 
     @Transactional
     public ConcertDetailResponse saveConcert(ConcertCreateRequest concertCreateRequest, Long hostId) {
@@ -130,9 +133,8 @@ public class ConcertService {
         return concert.map(ConcertSimpleDto::from);
     }
 
-    @Cacheable(value = "topViewedConcerts", key = "#limit", unless = "#result.size() == 0")
-    public List<ConcertSimpleDto> getTopViewedConcerts(int limit) {
-        List<Long> topViewedConcertIds = concertRedisRepository.getTopViewedConcertIds(limit);
+    public List<ConcertSimpleDto> getTopConcerts() {
+        List<Long> topViewedConcertIds = concertRedisRepository.getTopConcertsIds(TOP_CONCERT_LIMIT);
         List<Concert> concerts = concertRepository.findAllById(topViewedConcertIds);
         return concerts.stream().map(ConcertSimpleDto::from).toList();
     }
@@ -159,12 +161,25 @@ public class ConcertService {
         concert.updateTitle(concertUpdateRequest.getTitle());
         concert.updateDescription(concertUpdateRequest.getDescription());
         concert.updateThumbnailUrl(concertUpdateRequest.getThumbnailUrl());
+
+        if (isTopConcert(concertId)) {
+            redisCachePublisher.publishCacheUpdate(concertId);
+        }
     }
 
+    @Transactional
+    public void resetTopConcerts() {
+        concertRedisRepository.resetTopConcerts();
+    }
 
     private void reloadSeatsFromDatabase(Long concertId) {
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
         List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
         concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
+    }
+
+    // 인기 공연 여부 확인 메서드
+    private boolean isTopConcert(Long concertId) {
+        return concertRedisRepository.isTopConcert(concertId);
     }
 }

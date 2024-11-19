@@ -1,5 +1,8 @@
 package com.eatpizzaquickly.reservationservice.payment.entity;
 
+import com.eatpizzaquickly.reservationservice.common.enums.PayMethod;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
 import jakarta.persistence.*;
 import lombok.Getter;

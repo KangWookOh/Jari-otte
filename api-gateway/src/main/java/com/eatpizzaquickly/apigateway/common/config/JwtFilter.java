@@ -41,8 +41,8 @@ public class JwtFilter implements WebFilter {
                 || path.startsWith("/api/v1/users/sendmail") || path.startsWith("/api/v1/concerts/search")
                 || path.equals("/api/v1/concerts/search/autocomplete") || path.equals("/api/v1/users/oauth/kakao")
                 || path.equals("/api/v1/users//oauth/kakao/callback/")
-                || path.equals("/api/v1/concerts/popular")
-                || path.startsWith("/api/v1/concerts/")
+                || path.equals("/api/v1/concerts/top")
+                || path.equals("/api/v1/concerts/")
                 || (HttpMethod.GET.equals(request.getMethod()) && path.equals("/api/v1/concerts"))
         ) {
             return chain.filter(exchange);  // 경로에 대한 필터링 없이 통과

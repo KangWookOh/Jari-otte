@@ -12,4 +12,7 @@ public interface ConcertClient {
 
     @PostMapping("/api/v1/concerts/hosts")
     ResponseEntity<ConcertHostResponseDto> findHostIdsByConcertIds(@RequestBody HostIdRequestDto hostIdRequestDto);
+
+    @PostMapping("/api/v1/concerts/top")
+    void resetTopConcerts();
 }

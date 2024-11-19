@@ -5,6 +5,7 @@ import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.HostIdRequestDto;
 import com.eatpizzaquickly.concertservice.dto.response.*;
+import com.eatpizzaquickly.concertservice.service.ConcertCacheService;
 import com.eatpizzaquickly.concertservice.service.ConcertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.List;
 public class ConcertController {
 
     private final ConcertService concertService;
+    private final ConcertCacheService concertCacheService;
 
     // 관리자 권한 필요
     @PostMapping
@@ -73,17 +75,24 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("조회 성공", concertSimpleDtos));
     }
 
-    @GetMapping("/popular")
-    public ResponseEntity<ApiResponse<PopularConcertResponse>> getTopViewedConcerts() {
-        int limit = 10;
-        List<ConcertSimpleDto> topViewedConcerts = concertService.getTopViewedConcerts(limit);
-        return ResponseEntity.ok(ApiResponse.success("인기 콘서트 조회 성공", PopularConcertResponse.of(topViewedConcerts)));
+    @GetMapping("/top")
+    public ResponseEntity<ApiResponse<PopularConcertResponse>> getTopConcerts() {
+        List<ConcertSimpleDto> topConcerts = concertCacheService.getTopConcertsCache();
+        return ResponseEntity.ok(ApiResponse.success("인기 콘서트 조회 성공", PopularConcertResponse.of(topConcerts)));
     }
 
     @PutMapping("/{concertId}")
     public ResponseEntity<ApiResponse<Void>> updateConcert(@PathVariable Long concertId,
                                                            @RequestBody ConcertUpdateRequest concertUpdateRequest) {
         concertService.updateConcert(concertId, concertUpdateRequest);
+        String concertTitle = concertService.findConcert(concertId).getTitle();
+        System.out.println("updateConcert:concertTitle = " + concertTitle);
         return ResponseEntity.ok(ApiResponse.success("공연 업데이트 성공"));
     }
+
+    @PostMapping("/top")
+    public void resetTopConcerts() {
+        concertService.resetTopConcerts();
+    }
+
 }

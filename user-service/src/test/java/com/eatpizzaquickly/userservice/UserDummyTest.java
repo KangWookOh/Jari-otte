@@ -1,7 +1,7 @@
 package com.eatpizzaquickly.userservice;
 
 import com.eatpizzaquickly.userservice.common.config.PasswordEncoder;
-import com.eatpizzaquickly.userservice.entity.UserRole;
+import com.eatpizzaquickly.userservice.enums.UserRole;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

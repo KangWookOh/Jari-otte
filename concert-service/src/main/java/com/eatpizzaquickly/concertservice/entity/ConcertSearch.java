@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.concertservice.entity;
 
+import com.eatpizzaquickly.concertservice.enums.Category;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
