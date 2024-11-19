@@ -1,11 +1,14 @@
 package com.eatpizzaquickly.batchservice.common.config;
 
 import feign.Logger;
+import feign.Request;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Slf4j
@@ -28,5 +31,15 @@ public class FeignConfig {
                 }
             }
         };
+    }
+    @Bean
+    public Request.Options options() {
+        return new Request.Options(
+                5000,  // connectTimeout (5 seconds)
+                TimeUnit.MILLISECONDS,
+                30000, // readTimeout (30 seconds)
+                TimeUnit.MILLISECONDS,
+                true   // followRedirects
+        );
     }
 }

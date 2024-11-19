@@ -67,6 +67,18 @@ spring:
         max.partition.fetch.bytes: 1048576
         enable.auto.commit: false
 
+resilience4j.circuitbreaker:
+  instances:
+    userService:
+      registerHealthIndicator: true
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 5
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 5s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+
 eureka:
   client:
     service-url:
