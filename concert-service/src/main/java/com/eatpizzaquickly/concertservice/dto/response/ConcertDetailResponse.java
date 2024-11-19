@@ -20,6 +20,7 @@ public class ConcertDetailResponse {
     private int price;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private LocalDateTime performDate;
     private String thumbnailUrl;
 
     public static ConcertDetailResponse from(Concert concert, Venue venue, int seatCount) {
@@ -32,6 +33,7 @@ public class ConcertDetailResponse {
                 seatCount,
                 concert.getStartDate(),
                 concert.getEndDate(),
+                concert.getPerformDate(),
                 concert.getThumbnailUrl()
         );
     }
