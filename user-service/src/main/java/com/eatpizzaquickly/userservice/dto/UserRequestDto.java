@@ -1,6 +1,6 @@
 package com.eatpizzaquickly.userservice.dto;
 
-import com.eatpizzaquickly.userservice.entity.UserRole;
+import com.eatpizzaquickly.userservice.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

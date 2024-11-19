@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.concertservice.entity;
+package com.eatpizzaquickly.concertservice.enums;
 
 import com.eatpizzaquickly.concertservice.exception.BadRequestException;
 

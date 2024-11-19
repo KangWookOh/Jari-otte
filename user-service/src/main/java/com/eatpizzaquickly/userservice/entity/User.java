@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.userservice.entity;
 
+import com.eatpizzaquickly.userservice.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

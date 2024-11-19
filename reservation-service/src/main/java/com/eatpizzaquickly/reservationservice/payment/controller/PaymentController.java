@@ -6,8 +6,8 @@ import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelR
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponses;
-import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
-import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelException;

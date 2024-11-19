@@ -1,7 +1,7 @@
 package com.eatpizzaquickly.reservationservice.reservation.dto;
 
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
-import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
