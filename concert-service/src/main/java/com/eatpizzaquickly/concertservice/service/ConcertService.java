@@ -165,8 +165,8 @@ public class ConcertService {
     }
 
     @Transactional
-    public void resetPopularConcerts() {
-        concertRedisRepository.clearPopularConcerts();
+    public void resetTopConcerts() {
+        concertRedisRepository.resetTopConcerts();
     }
 
     private void reloadSeatsFromDatabase(Long concertId) {

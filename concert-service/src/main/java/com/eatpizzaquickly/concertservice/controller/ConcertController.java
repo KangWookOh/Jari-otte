@@ -92,9 +92,9 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 업데이트 성공"));
     }
 
-    @PostMapping("/popular")
-    public void resetPopularConcerts() {
-        concertService.resetPopularConcerts();
+    @PostMapping("/top")
+    public void resetTopConcerts() {
+        concertService.resetTopConcerts();
     }
 
 }

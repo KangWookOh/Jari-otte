@@ -92,7 +92,7 @@ public class ConcertRedisRepository {
         return Boolean.TRUE.equals(redisTemplate.hasKey(availableSeatsKey));
     }
 
-    public void clearPopularConcerts() {
+    public void resetTopConcerts() {
         String topConcertsKey = RedisUtil.getTopConcertsKey();
         redissonClient.getScoredSortedSet(topConcertsKey).delete();
     }
