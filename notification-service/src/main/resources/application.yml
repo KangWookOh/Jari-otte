@@ -16,7 +16,7 @@ spring:
   application:
     name: notification-service
   kafka:
-    bootstrap-servers: localhost:19092, localhost:19093, localhost:19094
+    bootstrap-servers: ${KAFKA_SERVER}
     consumer:
       group-id: notification-group
       auto-offset-reset: earliest

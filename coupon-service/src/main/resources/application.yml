@@ -41,7 +41,7 @@ spring:
         default_batch_fetch_size: 500
 
   kafka:
-    bootstrap-servers: localhost:19092, localhost:19093, localhost:19094
+    bootstrap-servers: ${KAFKA_SERVER}
     topic:
       coupon-events: coupon-events
       coupon-events-email: coupon-events-email

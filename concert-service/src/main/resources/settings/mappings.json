@@ -14,6 +14,10 @@
         "analyzer": "nori_edge_ngram_analyzer",
         "search_analyzer": "nori_analyzer"
       },
+      "performDate": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
       "startDate": {
         "type": "date",
         "format": "strict_date_optional_time||epoch_millis"
@@ -27,6 +31,10 @@
       },
       "deleted": {
         "type": "boolean"
+      },
+      "thumbnailUrl": {
+        "type": "keyword",
+        "index": false
       }
     }
   }
