@@ -76,6 +76,8 @@ dependencies {
     implementation 'org.springframework.batch:spring-batch-infrastructure'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
 }
 
 tasks.named('test') {

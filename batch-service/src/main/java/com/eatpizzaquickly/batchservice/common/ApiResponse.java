@@ -3,7 +3,7 @@ package com.eatpizzaquickly.batchservice.common;
 import lombok.Getter;
 
 @Getter
-public class ApiResponse<T>{
+public class ApiResponse<T> {
     private String status;
     private String message;
     private T data;
@@ -19,6 +19,12 @@ public class ApiResponse<T>{
         this.message = message;
     }
 
+    public ApiResponse(String status, String message, T data) {
+        this.status = status;
+        this.message = message;
+        this.data = data;
+    }
+
     // 성공 응답을 쉽게 만들기 위한 static 메서드
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(message, data);
@@ -27,6 +33,10 @@ public class ApiResponse<T>{
     // 성공 응답을 쉽게 만들기 위한 static 메서드
     public static <T> ApiResponse<T> success(String message) {
         return new ApiResponse<>(message);
+    }
+
+    public static <T> ApiResponse<T> error(String status, String message, T data) {
+        return new ApiResponse<>(status,message, data);
     }
 
 
