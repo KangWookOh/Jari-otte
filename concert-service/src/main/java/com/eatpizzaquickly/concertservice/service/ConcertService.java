@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.client.RedisCachePublisher;
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
+import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.HostIdRequestDto;
@@ -24,7 +25,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -82,8 +86,8 @@ public class ConcertService {
         seatRepository.saveAll(seats);
 
         // Redis에 예약 가능한 좌석 세팅
-        List<Long> seatIds = seats.stream().map(Seat::getId).toList();
-        concertRedisRepository.addAvailableSeats(concert.getId(), seatIds);
+        List<SeatDto> seatDtoList = seats.stream().map(SeatDto::from).toList();
+        concertRedisRepository.addAvailableSeats(concert.getId(), seatDtoList);
 
         return ConcertDetailResponse.from(concert, venue, venue.getSeatCount());
     }
@@ -172,10 +176,11 @@ public class ConcertService {
         concertRedisRepository.resetTopConcerts();
     }
 
-    private void reloadSeatsFromDatabase(Long concertId) {
+    private void reloadSeatsFromDatabase(Long concertId) { //TODO : 변경
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
         List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
-        concertRedisRepository.addAvailableSeats(concertId, availableSeatIds);
+        List<SeatDto> seatDtoList = availableSeats.stream().map(SeatDto::from).toList();
+        concertRedisRepository.addAvailableSeats(concertId, seatDtoList);
     }
 
     // 인기 공연 여부 확인 메서드

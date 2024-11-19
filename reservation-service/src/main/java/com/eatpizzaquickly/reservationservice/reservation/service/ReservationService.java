@@ -23,7 +23,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
 
     @Transactional
-    public PostReservationResponse createReservation(ReservationCreateRequest request) {
+    public void createReservation(ReservationCreateRequest request) {
         try {
             // 엔티티 변환
             Reservation reservation = Reservation.builder()
@@ -35,10 +35,9 @@ public class ReservationService {
                     .concertId(request.getConcertId())
                     .build();
 
-            // 저장 후 반환
-            Reservation savedReservation = reservationRepository.save(reservation);
-
-            return PostReservationResponse.from(savedReservation);
+            // 저장
+            reservationRepository.save(reservation);
+//            return PostReservationResponse.from(savedReservation);
         } catch (Exception e) {
             throw new ReservationCreationException();
         }
