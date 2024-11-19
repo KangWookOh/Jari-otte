@@ -1,12 +1,14 @@
 package com.eatpizzaquickly.batchservice.settlement.config;
 
-import com.eatpizzaquickly.batchservice.settlement.listener.JobLoggingListener;
-import com.eatpizzaquickly.batchservice.settlement.listener.StepLoggingListener;
 import com.eatpizzaquickly.batchservice.settlement.dto.request.HostPointRequestDto;
 import com.eatpizzaquickly.batchservice.settlement.dto.request.PaymentRequestDto;
 import com.eatpizzaquickly.batchservice.settlement.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
 import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
+import com.eatpizzaquickly.batchservice.settlement.incrementer.redoIdIncrementer;
+import com.eatpizzaquickly.batchservice.settlement.listener.ItemWriterExecutionLogging;
+import com.eatpizzaquickly.batchservice.settlement.listener.JobLoggingListener;
+import com.eatpizzaquickly.batchservice.settlement.listener.StepLoggingListener;
 import com.eatpizzaquickly.batchservice.settlement.processor.HostPointProcessor;
 import com.eatpizzaquickly.batchservice.settlement.processor.PaymentProcessor;
 import com.eatpizzaquickly.batchservice.settlement.reader.HostPointReader;
@@ -19,10 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.boot.autoconfigure.batch.JobLauncherApplicationRunner;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -45,12 +46,13 @@ public class SettlementBatchConfig {
     private final TaskletConfig taskletConfig;
     private final JobLoggingListener jobLoggingListener;
     private final StepLoggingListener stepLoggingListener;
-
+    private final JdbcPagingItemReader<TempPayment> pointAdditionReader;
 
     @Bean
     public Job settlementBatchJob() {
         return new JobBuilder("SettlementBatchJob", jobRepository)
                 .listener(jobLoggingListener)
+                .incrementer(new redoIdIncrementer())
                 .start(settlementStep())
                 .next(hostPointStorageStep())
                 .next(pointTransmissionStep())
@@ -62,40 +64,40 @@ public class SettlementBatchConfig {
     public Step settlementStep() {
         return new StepBuilder("settlementStep", jobRepository)
                 .<PaymentResponseDto, TempPayment>chunk(CHUNK_SIZE, transactionManager)
+                .listener(stepLoggingListener)
                 .reader(paymentReader.paidPaymentReader())
                 .processor(paymentProcessor.paymentSettleProcessor())
                 .writer(paymentWriter.tempPaymentWriter())
-                .listener(stepLoggingListener)
                 .build();
     }
 
     public Step hostPointStorageStep() {
         return new StepBuilder("hostPointStorageStep", jobRepository)
-                .<TempPayment, HostPoint>chunk(CHUNK_SIZE, transactionManager)
-                .reader(paymentReader.pointAdditionReader())
-                .processor(paymentProcessor.pointAdditionProcessor())
-                .writer(hostPointWriter.hostPointWriter())
+                .<TempPayment, TempPayment>chunk(CHUNK_SIZE, transactionManager)
+                .listener(new ItemWriterExecutionLogging<TempPayment>())
                 .listener(stepLoggingListener)
+                .reader(pointAdditionReader)
+                .writer(hostPointWriter.hostPointWriter())
                 .build();
     }
 
     public Step pointTransmissionStep() {
         return new StepBuilder("pointTransmissionStep", jobRepository)
                 .<HostPoint, HostPointRequestDto>chunk(CHUNK_SIZE, transactionManager)
+                .listener(stepLoggingListener)
                 .reader(hostPointReader.hostPointReader())
                 .processor(hostPointProcessor.pointTransmissionProcessor())
                 .writer(hostPointWriter.hostPointTransmissionWriter())
-                .listener(stepLoggingListener)
                 .build();
     }
 
     public Step updatePaymentWithTestPaymentStep() {
         return new StepBuilder("updatePaymentWithTestPaymentStep", jobRepository)
                 .<TempPayment, PaymentRequestDto>chunk(CHUNK_SIZE, transactionManager)
+                .listener(stepLoggingListener)
                 .reader(paymentReader.updatePaymentReader())
                 .processor(paymentProcessor.updatePaymentProcessor())
                 .writer(paymentWriter.paymentWriter())
-                .listener(stepLoggingListener)
                 .build();
     }
 

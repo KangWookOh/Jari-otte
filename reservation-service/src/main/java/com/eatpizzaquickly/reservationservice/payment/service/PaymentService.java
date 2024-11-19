@@ -4,7 +4,7 @@ import com.eatpizzaquickly.reservationservice.common.config.TossPaymentConfig;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
 import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
-import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentRequestDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentConfirmRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;

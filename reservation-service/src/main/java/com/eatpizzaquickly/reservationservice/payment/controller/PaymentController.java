@@ -1,14 +1,14 @@
 package com.eatpizzaquickly.reservationservice.payment.controller;
 
-import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
-import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
-import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelRequest;
-import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
-import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
-import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponses;
+import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
 import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
-import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelRequest;
+import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentRequestDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponses;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelException;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentSessionExpiredException;
@@ -106,7 +106,6 @@ public class PaymentController {
     ) {
 
         return ResponseEntity.ok(ApiResponse.success("결제 내역 조회 성공", paymentService.getPayments(userId, page, size)));
-
     }
 
     @GetMapping("/payment-page")

@@ -3,10 +3,8 @@ package com.eatpizzaquickly.concertservice.controller;
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
-import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
-import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
-import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
-import com.eatpizzaquickly.concertservice.dto.response.PopularConcertResponse;
+import com.eatpizzaquickly.concertservice.dto.request.HostIdRequestDto;
+import com.eatpizzaquickly.concertservice.dto.response.*;
 import com.eatpizzaquickly.concertservice.service.ConcertCacheService;
 import com.eatpizzaquickly.concertservice.service.ConcertService;
 import lombok.RequiredArgsConstructor;
@@ -42,9 +40,9 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertDetailResponse));
     }
 
-    @GetMapping("/{concertId}/host")
-    public Long findHostIdByConcertId(@PathVariable(name = "concertId") Long concertId) {
-        return concertService.findHostIdByConcertId(concertId);
+    @PostMapping("/hosts")
+    ResponseEntity<ConcertHostResponseDto> findHostIdsByConcertIds(@RequestBody HostIdRequestDto hostIdRequestDto){
+        return ResponseEntity.ok(concertService.findHostIdsByConcertIds(hostIdRequestDto));
     }
 
     ;

@@ -5,9 +5,11 @@ import com.eatpizzaquickly.batchservice.settlement.entity.SettlementStatus;
 import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class PaymentRequestDto {
     private Long id;
     private SettlementStatus settlementStatus;

@@ -5,9 +5,11 @@ import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
 import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class PaymentResponseDto {
     private Long id;
     private SettlementStatus settlementStatus;

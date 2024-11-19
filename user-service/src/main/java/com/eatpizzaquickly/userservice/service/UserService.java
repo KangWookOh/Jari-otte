@@ -7,10 +7,10 @@ import com.eatpizzaquickly.userservice.dto.HostPointRequestDto;
 import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
-import com.eatpizzaquickly.userservice.entity.HostBalance;
 import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.enums.UserRole;
 import com.eatpizzaquickly.userservice.exception.*;
+import com.eatpizzaquickly.userservice.repository.HostBalanceJdbcRepository;
 import com.eatpizzaquickly.userservice.repository.HostBalanceRepository;
 import com.eatpizzaquickly.userservice.repository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
     private final UserRepository userRepository;
     private final HostBalanceRepository hostBalanceRepository;
+    private final HostBalanceJdbcRepository hostBalanceJdbcRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final RedisTemplate<String, String> redisTemplate;
@@ -195,22 +196,6 @@ public class UserService {
 
     @Transactional
     public void addPointsToHosts(List<HostPointRequestDto> hostpoints) {
-        for (HostPointRequestDto hostPoint : hostpoints) {
-            Long hostId = hostPoint.getHostId();
-            Long points = hostPoint.getPoints();
-
-            Optional<HostBalance> optionalHostBalance = hostBalanceRepository.findByHostId(hostId);
-
-            HostBalance hostBalance = optionalHostBalance
-                    .map(balance -> {
-                        balance.addBalance(points);
-                        return balance;
-                    }).orElse(HostBalance.builder()
-                            .hostId(hostId)
-                            .balance(points)
-                            .build());
-
-            hostBalanceRepository.save(hostBalance);
-        }
+        hostBalanceJdbcRepository.batchInsertHostBalance(hostpoints);
     }
 }
