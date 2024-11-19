@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.concertservice.client;
+package com.eatpizzaquickly.concertservice.client.reservation;
 
 import lombok.Getter;
 

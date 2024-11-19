@@ -32,23 +32,9 @@ public class KafkaEventProducer {
         future.whenComplete((result, ex) -> {
             if (ex != null) {
                 log.error("이벤트 발행 실패: {}, Exception: {}", event.toString(), ex.getMessage());
-                notifyFailureMessage(event, ex);
+                slackNotifier.notifyFailureMessage(event, ex);
                 throw new EventPublishingException();
             }
         });
-    }
-
-    private void notifyFailureMessage(Object event, Throwable ex) {
-        String message = String.format(
-                """
-                        [이벤트 발행 실패]
-                        - Event: %s
-                        - Error: %s
-                        """,
-                event.toString(),
-                ex.getMessage()
-        );
-
-        slackNotifier.sendNotification(message);
     }
 }

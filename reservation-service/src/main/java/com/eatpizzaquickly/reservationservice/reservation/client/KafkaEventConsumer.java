@@ -15,15 +15,13 @@ import org.springframework.stereotype.Component;
 public class KafkaEventConsumer {
 
     private final ReservationService reservationService;
-    private final ObjectMapper objectMapper;
     private final JsonUtil jsonUtil;
 
     @KafkaListener(
             topics = "${spring.kafka.topic.reservation-created}",
             groupId = "${spring.kafka.consumer.group-id}"
     )
-    public void consumeSeatReservationEvent(String message) throws JsonProcessingException {
-//        SeatReservationEvent event = objectMapper.readValue(message, SeatReservationEvent.class);
+    public void consumeSeatReservationEvent(String message) {
         SeatReservationEvent event = jsonUtil.toObject(message, SeatReservationEvent.class);
         ReservationCreateRequest request = ReservationCreateRequest.from(event);
         reservationService.createReservation(request);
