@@ -19,8 +19,8 @@ public class CouponBatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job couponBatchJob;
 
-    //@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
-    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+//    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     public void runBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

@@ -3,10 +3,8 @@ package com.eatpizzaquickly.concertservice.controller;
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
-import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
-import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
-import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
-import com.eatpizzaquickly.concertservice.dto.response.PopularConcertResponse;
+import com.eatpizzaquickly.concertservice.dto.request.HostIdRequestDto;
+import com.eatpizzaquickly.concertservice.dto.response.*;
 import com.eatpizzaquickly.concertservice.service.ConcertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/concerts")
@@ -42,9 +38,9 @@ public class ConcertController {
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertDetailResponse));
     }
 
-    @GetMapping("/{concertId}/host")
-    public ResponseEntity<Map<Long,Long>> findHostIdsByConcertIds(@RequestBody Set<Long> concertIds){
-        return ResponseEntity.ok(concertService.findHostIdsByConcertIds(concertIds));
+    @PostMapping("/hosts")
+    ResponseEntity<ConcertHostResponseDto> findHostIdsByConcertIds(@RequestBody HostIdRequestDto hostIdRequestDto){
+        return ResponseEntity.ok(concertService.findHostIdsByConcertIds(hostIdRequestDto));
     }
 
     ;

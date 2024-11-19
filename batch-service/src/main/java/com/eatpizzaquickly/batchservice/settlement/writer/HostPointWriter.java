@@ -3,7 +3,9 @@ package com.eatpizzaquickly.batchservice.settlement.writer;
 
 import com.eatpizzaquickly.batchservice.common.client.ConcertClient;
 import com.eatpizzaquickly.batchservice.common.client.UserClient;
+import com.eatpizzaquickly.batchservice.settlement.dto.request.HostIdRequestDto;
 import com.eatpizzaquickly.batchservice.settlement.dto.request.HostPointRequestDto;
+import com.eatpizzaquickly.batchservice.settlement.dto.response.ConcertHostResponseDto;
 import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
 import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
 import com.eatpizzaquickly.batchservice.settlement.repository.HostPointRepository;
@@ -19,9 +21,9 @@ import org.springframework.stereotype.Component;
 import javax.naming.ServiceUnavailableException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.COMMISSION;
@@ -38,18 +40,18 @@ public class HostPointWriter {
 
     public ItemWriter<TempPayment> hostPointWriter() {
         return tempPayments -> {
-            Set<Long> concertIds = tempPayments.getItems().stream()
+            HashSet<Long> concertIds = tempPayments.getItems().stream()
                     .map(TempPayment::getConcertId)
-                    .collect(Collectors.toSet());
-
-            ResponseEntity<Map<Long, Long>> concertResponse = concertClient.findHostIdsByConcertIds(concertIds);
+                    .collect(Collectors.toCollection(HashSet::new));
+            HostIdRequestDto requestDto = new HostIdRequestDto(concertIds);
+            ResponseEntity<ConcertHostResponseDto> concertResponse = concertClient.findHostIdsByConcertIds(requestDto);
             log.info("콘서트 feign 응답코드 : {}", concertResponse.getStatusCode());
-            Map<Long, Long> hostIds = concertResponse.getBody();
+            Map<String, Long> hostIds = concertResponse.getBody().getResult();
 
             List<HostPoint> hostPoints = tempPayments.getItems().stream()
                     .map(payment -> {
                         Long payId = payment.getPaymentId();
-                        Long hostId = hostIds.get(payment.getConcertId());
+                        Long hostId = hostIds.get(payment.getConcertId().toString());
                         Long points = calculatePoints(payment.getAmount()); // 수수료 떼고 정산
                         return new HostPoint(payId, hostId, points);
                     })

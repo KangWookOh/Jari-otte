@@ -3,7 +3,9 @@ package com.eatpizzaquickly.concertservice.service;
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
+import com.eatpizzaquickly.concertservice.dto.request.HostIdRequestDto;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
+import com.eatpizzaquickly.concertservice.dto.response.ConcertHostResponseDto;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
 import com.eatpizzaquickly.concertservice.entity.Category;
 import com.eatpizzaquickly.concertservice.entity.Concert;
@@ -22,10 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -144,9 +143,14 @@ public class ConcertService {
 
 
     @Transactional(readOnly = true)
-    public Map<Long,Long> findHostIdsByConcertIds(Set<Long> concertIds) {
+    public ConcertHostResponseDto findHostIdsByConcertIds(HostIdRequestDto hostIdRequestDto) {
+        HashSet<Long> concertIds = hostIdRequestDto.getConcertIds();
         log.info("콘서트 ID : {}", concertIds);
-        return concertRepository.findHostIdsByConcertIds(concertIds);
+        ConcertHostResponseDto responseDto = new ConcertHostResponseDto(new HashMap<>());
+        concertRepository.findByConcertIds(concertIds).forEach(
+                concert -> responseDto.getResult().put(concert.getId().toString(), concert.getHostId())
+        );
+        return responseDto;
     }
 
     @Transactional

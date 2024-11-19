@@ -5,6 +5,7 @@ import com.eatpizzaquickly.batchservice.settlement.dto.request.PaymentRequestDto
 import com.eatpizzaquickly.batchservice.settlement.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
 import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
+import com.eatpizzaquickly.batchservice.settlement.incrementer.redoIdIncrementer;
 import com.eatpizzaquickly.batchservice.settlement.listener.ItemWriterExecutionLogging;
 import com.eatpizzaquickly.batchservice.settlement.listener.JobLoggingListener;
 import com.eatpizzaquickly.batchservice.settlement.listener.StepLoggingListener;
@@ -51,6 +52,7 @@ public class SettlementBatchConfig {
     public Job settlementBatchJob() {
         return new JobBuilder("SettlementBatchJob", jobRepository)
                 .listener(jobLoggingListener)
+                .incrementer(new redoIdIncrementer())
                 .start(settlementStep())
                 .next(hostPointStorageStep())
                 .next(pointTransmissionStep())
@@ -70,7 +72,6 @@ public class SettlementBatchConfig {
     }
 
     public Step hostPointStorageStep() {
-
         return new StepBuilder("hostPointStorageStep", jobRepository)
                 .<TempPayment, TempPayment>chunk(CHUNK_SIZE, transactionManager)
                 .listener(new ItemWriterExecutionLogging<TempPayment>())

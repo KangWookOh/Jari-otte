@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.CHUNK_SIZE;
+import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.OFFSET_KEY;
 
 @RequiredArgsConstructor
 @Component
@@ -37,7 +38,6 @@ public class PaymentReader {
     private final PaymentClient paymentClient;
     private final TempPaymentRepository tempPaymentRepository;
     private final EntityManagerFactory entityManagerFactory;
-    public static final String OFFSET_KEY = "current_offset";
     private final RedisTemplate<String, String> redisTemplate;
     private final DataSource dataSource;
     private final PagingQueryProvider pagingQueryProvider;
@@ -63,7 +63,7 @@ public class PaymentReader {
                 if (currentChunk.isEmpty()) {
                     Long currentOffset = Long.valueOf(redisTemplate.opsForValue().get(OFFSET_KEY));
 
-                    // ID를 기준으로 하는 ZeroOffsetReader로 변경
+                    // ID를 기준으로 하는 noOffsetReader로 변경
                     currentChunk = paymentClient.getPaymentsByStatusAfterId(
                             SettlementStatus.UNSETTLED, PayStatus.PAID, CHUNK_SIZE, currentOffset);
 

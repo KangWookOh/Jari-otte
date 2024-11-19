@@ -22,7 +22,7 @@ services:
       ELASTIC_PASSWORD: "jariotte1123"
     networks:
       - elk
-
+    command: bash -c "elasticsearch-plugin install analysis-nori && elasticsearch"
   # Logstash 설정
   logstash:
     container_name: logstash
