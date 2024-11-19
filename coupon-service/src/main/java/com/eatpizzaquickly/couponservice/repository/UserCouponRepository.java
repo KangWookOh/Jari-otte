@@ -38,4 +38,14 @@ public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
     int deleteExpiredUserCoupons(@Param("userCouponIds") List<Long> userCouponIds);
 
 
+    @Query("SELECT uc FROM UserCoupon uc " +
+            "WHERE uc.expiryDate < :currentDate " +
+            "AND uc.id > :lastSeenId " +
+            "ORDER BY uc.id ASC")
+    Page<UserCoupon> findExpiredUserCouponsAfter(
+            @Param("currentDate") LocalDate currentDate,
+            @Param("lastSeenId") Long lastSeenId,
+            Pageable pageable);
+
+
 }

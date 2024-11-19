@@ -54,4 +54,15 @@ public class CouponBatchController {
         couponBatchService.deleteExpiredUserCoupons(userCouponIds);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/user-coupons/expired/after")
+    public ResponseEntity<Page<UserCouponDto>> getExpiredUserCouponsAfter(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate currentDate,
+            @RequestParam(required = false) Long lastSeenId,
+            @RequestParam(defaultValue = "500") int size) {
+
+        return ResponseEntity.ok(
+                couponBatchService.findExpiredUserCouponsAfter(currentDate, lastSeenId, size)
+        );
+    }
 }

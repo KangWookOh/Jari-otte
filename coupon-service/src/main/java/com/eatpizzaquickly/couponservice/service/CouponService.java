@@ -1,6 +1,5 @@
 package com.eatpizzaquickly.couponservice.service;
 
-import com.eatpizzaquickly.couponservice.client.ApiResponse;
 import com.eatpizzaquickly.couponservice.client.UserClient;
 import com.eatpizzaquickly.couponservice.common.config.UserCouponsChangedEvent;
 import com.eatpizzaquickly.couponservice.dto.CouponRequestDto;
@@ -30,12 +29,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+<<<<<<< Updated upstream
 
+=======
+import java.time.Duration;
+>>>>>>> Stashed changes
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Service

@@ -9,7 +9,9 @@ import com.eatpizzaquickly.couponservice.repository.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,18 @@ public class CouponBatchService {
 
         log.info("Found {} expired coupons", expiredCoupons.size());
         return expiredCoupons;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserCouponDto> findExpiredUserCouponsAfter(
+            LocalDate currentDate,
+            Long lastSeenId,
+            int pageSize) {
+        return userCouponRepository.findExpiredUserCouponsAfter(
+                currentDate,
+                lastSeenId == null ? 0L : lastSeenId,
+                PageRequest.of(0, pageSize, Sort.by("id").ascending())
+        ).map(this::convertToUserCouponDto);
     }
 
     @Transactional
