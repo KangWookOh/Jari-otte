@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.concertservice.client;
 
+import com.eatpizzaquickly.concertservice.dto.event.ReservationCompensationEvent;
 import com.eatpizzaquickly.concertservice.service.SeatService;
 import com.eatpizzaquickly.concertservice.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,6 @@ public class KafkaEventConsumer {
     )
     public void consumeSeatReservationCreatedCompensationEvent(String message) {
         log.info("보상 트랜잭션 이벤트 수신: {}", message);
-//        ReservationCompensationEvent event = objectMapper.readValue(message, ReservationCompensationEvent.class);
         ReservationCompensationEvent event = jsonUtil.toObject(message, ReservationCompensationEvent.class);
         seatService.compensateReservation(event);
     }
