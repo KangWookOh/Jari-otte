@@ -13,8 +13,9 @@ public class ConcertSimpleDto {
     private String title;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private String thumbnailUrl;
 
     public static ConcertSimpleDto from(Concert concert) {
-        return new ConcertSimpleDto(concert.getId(), concert.getTitle(), concert.getStartDate(), concert.getEndDate());
+        return new ConcertSimpleDto(concert.getId(), concert.getTitle(), concert.getStartDate(), concert.getEndDate(), concert.getThumbnailUrl());
     }
 }

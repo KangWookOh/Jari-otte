@@ -41,7 +41,7 @@ spring:
         default_batch_fetch_size: 500
 
   kafka:
-#    bootstrap-servers: localhost:19092,localhost:19093,localhost:19094
+    bootstrap-servers: ${KAFKA_SERVER}
     topic:
       coupon-events: coupon-events
       coupon-events-email: coupon-events-email
@@ -66,7 +66,6 @@ spring:
         fetch.max.wait.ms: 500
         max.partition.fetch.bytes: 1048576
         enable.auto.commit: false
-    bootstrap-servers: localhost:9092
 
 eureka:
   client:

@@ -1,9 +1,14 @@
 package com.eatpizzaquickly.reservationservice.payment.controller;
 
-import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.PaymentRequestDto;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentCancelRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PostPaymentRequest;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponses;
+import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
+import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
+import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelException;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentSessionExpiredException;
@@ -14,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
@@ -22,13 +29,12 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/toss")
-    public ResponseEntity<String> requestPayment(
+    public ResponseEntity<PaymentResponses> requestPayment(
             @RequestBody PostPaymentRequest request,
             @RequestParam(name = "couponId", required = false) Long couponId
     ) {
-        String redirectUrl = paymentService.requestTossPayment(request, couponId);
-        // 리다이렉트 URL을 반환하도록 수정
-        return ResponseEntity.ok(redirectUrl);
+        PaymentResponses paymentResponse = paymentService.requestTossPayment(request, couponId);
+        return ResponseEntity.ok(paymentResponse);
     }
 
     /* 결제 성공 처리 */
@@ -77,6 +83,22 @@ public class PaymentController {
     }
 
     @GetMapping
+    public List<PaymentResponseDto> getPaymentsByStatusAfterId(
+            @RequestParam(name = "settlementStatus") SettlementStatus settlementStatus,
+            @RequestParam(name = "payStatus") PayStatus payStatus,
+            @RequestParam(name = "size") int chunk,
+            @RequestParam(name = "offset") Long currentOffset
+    ) {
+        return paymentService.getPaymentsByStatusAfterId(settlementStatus, payStatus, chunk, currentOffset);
+    }
+
+    @PutMapping
+    public ResponseEntity<String> updatePayments(@RequestBody List<PaymentRequestDto> payments) {
+        paymentService.updatePayments(payments);
+        return ResponseEntity.ok().body("update successfully");
+    }
+
+    @GetMapping("/my-payment")
     public ResponseEntity<ApiResponse<Page<PaymentSimpleResponse>>> getPayments(
             @RequestHeader("X-Authenticated-User") Long userId,
             @RequestParam(name = "page", defaultValue = "1") int page,
@@ -84,6 +106,7 @@ public class PaymentController {
     ) {
 
         return ResponseEntity.ok(ApiResponse.success("결제 내역 조회 성공", paymentService.getPayments(userId, page, size)));
+
     }
 
     @GetMapping("/payment-page")

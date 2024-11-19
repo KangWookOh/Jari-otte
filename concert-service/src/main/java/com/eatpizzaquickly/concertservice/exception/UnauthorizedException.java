@@ -6,4 +6,6 @@ public class UnauthorizedException extends RuntimeException{
     public UnauthorizedException() {super(MESSAGE);}
 
     public UnauthorizedException(Throwable cause) {super(cause);}
+
+    public UnauthorizedException(String message) {super(message);}
 }

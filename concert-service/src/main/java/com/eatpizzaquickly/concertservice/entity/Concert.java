@@ -45,11 +45,12 @@ public class Concert {
 
     @Column(nullable = false)
     private LocalDateTime endDate;
-
+    @Column(nullable = false)
+    private LocalDateTime performDate;
+    private int price;
     @Convert(converter = StringListConvertor.class)
     @Column(nullable = false)
     private List<String> artists;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id")
     private Venue venue;
@@ -67,6 +68,8 @@ public class Concert {
                     Category category,
                     LocalDateTime startDate,
                     LocalDateTime endDate,
+                    LocalDateTime performDate,
+                    int price,
                     List<String> artists,
                     Venue venue,
                     Long hostId) {
@@ -78,6 +81,8 @@ public class Concert {
         this.category = category;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.performDate = performDate;
+        this.price = price;
         this.artists = artists;
         this.venue = venue;
         this.hostId = hostId;
@@ -89,5 +94,15 @@ public class Concert {
 
     public void updateSeatCount(int seatCount) {
         this.seatCount = seatCount;
+    }
+
+    public void updateTitle(String title) {this.title = title;}
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 }

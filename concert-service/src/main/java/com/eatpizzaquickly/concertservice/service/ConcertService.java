@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.dto.ConcertSimpleDto;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
+import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
 import com.eatpizzaquickly.concertservice.entity.Category;
@@ -47,8 +48,10 @@ public class ConcertService {
                 .artists(concertCreateRequest.getArtists())
                 .startDate(concertCreateRequest.getStartDate())
                 .endDate(concertCreateRequest.getEndDate())
+                .performDate(concertCreateRequest.getPerformDate())
                 .category(Category.of(concertCreateRequest.getCategory()))
                 .thumbnailUrl(concertCreateRequest.getThumbnailUrl())
+                .price(concertCreateRequest.getPrice())
                 .venue(venue)
                 .seatCount(venue.getSeatCount())
                 .build();
@@ -140,12 +143,21 @@ public class ConcertService {
 
     @Transactional(readOnly = true)
     public Long findHostIdByConcertId(Long concertId) {
-        log.info("콘서트 ID : {}",concertId);
+        log.info("콘서트 ID : {}", concertId);
         Concert concert = concertRepository.findById(concertId).orElseThrow(
                 () -> new NotFoundException("콘서트가 없습니다.")
         );
         return concert.getHostId();
     }
+
+    @Transactional
+    public void updateConcert(Long concertId, ConcertUpdateRequest concertUpdateRequest) {
+        Concert concert = concertRepository.findById(concertId).orElseThrow(NotFoundException::new);
+        concert.updateTitle(concertUpdateRequest.getTitle());
+        concert.updateDescription(concertUpdateRequest.getDescription());
+        concert.updateThumbnailUrl(concertUpdateRequest.getThumbnailUrl());
+    }
+
 
     private void reloadSeatsFromDatabase(Long concertId) {
         List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);

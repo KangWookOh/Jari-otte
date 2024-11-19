@@ -35,6 +35,7 @@ public class ReservationService {
                     .price(request.getPrice())
                     .userId(request.getUserId())
                     .seatId(request.getSeatId())
+                    .seatNumber(request.getSeatNumber())
                     .reservationStatus(ReservationStatus.PENDING)
                     .concertId(request.getConcertId())
                     .build();
@@ -64,7 +65,8 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public Page<ReservationResponseDto> getReservations(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+        int adjustedPage = Math.max(page - 1, 0); // 최소값 0으로 설정
+        Pageable pageable = PageRequest.of(adjustedPage, size);
 
         return reservationRepository.findByUserId(userId, pageable).map(
                 ReservationResponseDto::from
