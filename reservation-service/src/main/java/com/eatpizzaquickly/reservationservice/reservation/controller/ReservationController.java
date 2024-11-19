@@ -16,13 +16,6 @@ import java.util.List;
 public class ReservationController {
     private final ReservationService reservationService;
 
-    //    @PostMapping
-//    public PostReservationResponse createReservation(
-//            @RequestBody PostReservationRequest request
-//    ) {
-//        PostReservationResponse response = reservationService.createReservation(request);
-//        return response;
-//    }
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ReservationResponseDto>>> getReservations(
             @RequestHeader("X-Authenticated-User") Long userId,
