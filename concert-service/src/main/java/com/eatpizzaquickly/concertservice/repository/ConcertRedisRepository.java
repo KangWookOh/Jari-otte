@@ -1,7 +1,5 @@
 package com.eatpizzaquickly.concertservice.repository;
 
-import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
-import com.eatpizzaquickly.concertservice.exception.detail.RedisException;
 import com.eatpizzaquickly.concertservice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RScoredSortedSet;
@@ -11,11 +9,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @Repository
@@ -26,15 +22,21 @@ public class ConcertRedisRepository {
 
     // 조회수 증가
     public void increaseViewCount(Long concertId) {
-        RScoredSortedSet<Long> sortedSet = redissonClient.getScoredSortedSet(RedisUtil.getViewCountKey());
+        RScoredSortedSet<Long> sortedSet = redissonClient.getScoredSortedSet(RedisUtil.getTopConcertsKey());
         sortedSet.addScore(concertId, 1);
     }
 
     // 상위 조회수 콘서트 조회
-    public List<Long> getTopViewedConcertIds(int limit) {
-        RScoredSortedSet<Long> sortedSet = redissonClient.getScoredSortedSet(RedisUtil.getViewCountKey());
+    public List<Long> getTopConcertsIds(int limit) {
+        RScoredSortedSet<Long> sortedSet = redissonClient.getScoredSortedSet(RedisUtil.getTopConcertsKey());
         Collection<Long> concertIds = sortedSet.valueRangeReversed(0, limit - 1);
         return new ArrayList<>(concertIds);
+    }
+
+    public boolean isTopConcert(Long concertId) {
+        String topConcertsKey = RedisUtil.getTopConcertsKey();
+        Double score = redisTemplate.opsForZSet().score(topConcertsKey, concertId.toString());
+        return score != null;
     }
 
     // 예약 가능한 좌석을 Redis에 추가
@@ -88,5 +90,10 @@ public class ConcertRedisRepository {
     public boolean hasAvailableSeats(Long concertId) {
         String availableSeatsKey = RedisUtil.getAvailableSeatsKey(concertId);
         return Boolean.TRUE.equals(redisTemplate.hasKey(availableSeatsKey));
+    }
+
+    public void clearPopularConcerts() {
+        String topConcertsKey = RedisUtil.getTopConcertsKey();
+        redissonClient.getScoredSortedSet(topConcertsKey).delete();
     }
 }
