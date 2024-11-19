@@ -17,7 +17,7 @@ public class ElasticsearchIndexConfig {
             String indexName = "concerts";
             elasticsearchInitializer.initializeIndex(indexName);
         } catch (Exception e) {
-            throw new ElasticsearchIndexException("Elasticsearch 인덱스 초기화 중 오류 발생");
+            throw new ElasticsearchIndexException("Elasticsearch 인덱스 초기화 중 오류 발생", e);
         }
     }
 }

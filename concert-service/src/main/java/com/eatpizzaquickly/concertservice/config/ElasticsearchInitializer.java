@@ -26,42 +26,59 @@ public class ElasticsearchInitializer {
     public void initializeIndex(String indexName) throws Exception {
         // 인덱스가 존재하지 않는지 확인
         if (!indexExists(indexName)) {
-            // JSON 파일에서 설정을 로드하여 맵으로 변환
-            Map<String, Object> settingsMap = loadJsonFileAsMap("settings/settings.json");
-            JsonNode mappingsNode = readJsonFromFile("settings/mappings.json");
+            try {
+                // 1. settings.json 로드
+                Map<String, Object> settingsMap;
+                try {
+                    settingsMap = loadJsonFileAsMap("settings/settings.json");
+                } catch (IOException e) {
+                    throw new ElasticsearchIndexException("settings.json 파일 로드 중 오류 발생", e);
+                } catch (Exception e) {
+                    throw new ElasticsearchIndexException("settings.json 처리 중 일반적인 오류 발생", e);
+                }
 
-            // "mappings" 노드를 추출하여 JSON 문자열로 변환
-            JsonNode mappingsData = mappingsNode.path("mappings");  // `mappingsNode`에서 최상위 "mappings" 필드를 추출
-            if (mappingsData.isMissingNode()) { // "mappings" 필드가 없을 경우
-                throw new ElasticsearchIndexException("Mappings JSON에 'mappings' 필드가 포함되어 있지 않습니다.");
+                // 2. mappings.json 로드
+                JsonNode mappingsNode;
+                try {
+                    mappingsNode = readJsonFromFile("settings/mappings.json");
+                } catch (IOException e) {
+                    throw new ElasticsearchIndexException("mappings.json 파일 로드 중 오류 발생: " + e.getMessage(), e);
+                } catch (Exception e) {
+                    throw new ElasticsearchIndexException("mappings.json 처리 중 일반적인 오류 발생", e);
+                }
+
+                // 3. "mappings" 노드 확인
+                JsonNode mappingsData = mappingsNode.path("mappings");
+                if (mappingsData.isMissingNode()) {
+                    throw new ElasticsearchIndexException("mappings.json에 'mappings' 필드가 포함되어 있지 않습니다.");
+                }
+
+                // 4. 추출된 "mappings" 데이터를 JSON 문자열로 변환
+                String mappingsJsonString = jacksonConfig.objectMapper().writeValueAsString(mappingsData);
+                InputStream mappingsStream = new ByteArrayInputStream(mappingsJsonString.getBytes(StandardCharsets.UTF_8));
+
+                // 5. JsonData를 사용하여 설정 적용
+                IndexSettings settings = IndexSettings.of(builder -> {
+                    settingsMap.forEach((key, value) -> builder.otherSettings(key, JsonData.of(value)));
+                    return builder;
+                });
+
+                // 6. 인덱스 생성 요청
+                CreateIndexRequest request = CreateIndexRequest.of(builder -> builder
+                        .index(indexName) // 인덱스 이름 설정
+                        .settings(settings) // settings 적용
+                        .mappings(m -> m.withJson(mappingsStream)) // mappings 적용
+                );
+
+                // Elasticsearch 클라이언트를 사용하여 인덱스 생성 요청 실행
+                client.indices().create(request);
+                System.out.println("인덱스가 생성되었습니다. 인덱스 이름: " + indexName);
+
+            } catch (IOException e) {
+                throw new ElasticsearchIndexException("Elasticsearch 파일 처리 중 입출력 오류 발생", e);
+            } catch (Exception e) {
+                throw new ElasticsearchIndexException("Elasticsearch 인덱스 생성 중 예외 발생", e);
             }
-
-            // 추출된 "mappings" 데이터를 JSON 문자열로 변환
-            // `objectMapper.writeValueAsString()`을 사용하여 `JsonNode` 객체를 JSON 문자열로 변환
-            String mappingsJsonString = jacksonConfig.objectMapper().writeValueAsString(mappingsData);
-
-            // 문자열로 변환된 JSON 데이터를 `InputStream`으로 변환
-            // `withJson()` 메서드는 `InputStream` 또는 `Reader`를 필요로 하기 때문에
-            // 문자열을 바이트 배열로 변환한 후 이를 `InputStream`으로 래핑
-            InputStream mappingsStream = new ByteArrayInputStream(mappingsJsonString.getBytes(StandardCharsets.UTF_8));
-
-            // JsonData를 사용하여 otherSettings에 JSON 설정 적용
-            IndexSettings settings = IndexSettings.of(builder -> {
-                // settingsMap의 각 키-값 쌍을 설정에 추가
-                settingsMap.forEach((key, value) -> builder.otherSettings(key, JsonData.of(value)));
-                return builder;  // 빌더 반환 추가
-            });
-
-            // CreateIndexRequest 객체 생성, 인덱스 이름과 설정 포함
-            CreateIndexRequest request = CreateIndexRequest.of(builder -> builder
-                    .index(indexName) // 인덱스 이름 설정
-                    .settings(settings) // 설정 적용
-                    .mappings(m -> m.withJson(mappingsStream))
-            );
-
-            // Elasticsearch 클라이언트를 사용하여 인덱스 생성 요청 실행
-            client.indices().create(request);
-            System.out.println("인덱스가 생성되었습니다. 인덱스 이름: " + indexName);
         } else {
             System.out.println("인덱스가 이미 존재합니다. 인덱스 이름: " + indexName);
         }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Component
 public class ResultProcessor {
@@ -17,10 +18,11 @@ public class ResultProcessor {
         return searchResponse.hits().hits().stream()
                 .flatMap(hit -> {
                     assert hit.source() != null;
-                    return SearchAutoTitleDto.from(hit.source()).stream();
+                    return SearchAutoTitleDto.from(hit.source(), Optional.ofNullable(hit.score()).orElse(0.0)).stream();
                 })
                 // query로 시작하는 항목을 먼저 필터링
                 .sorted((dto1, dto2) -> {
+                    // query로 시작하는 항목이 우선
                     boolean dto1StartsWithQuery = dto1.getAuto().startsWith(query);
                     boolean dto2StartsWithQuery = dto2.getAuto().startsWith(query);
 
@@ -28,13 +30,11 @@ public class ResultProcessor {
                     if (dto1StartsWithQuery && !dto2StartsWithQuery) return -1;
                     if (!dto1StartsWithQuery && dto2StartsWithQuery) return 1;
 
-                    // 시작하지 않는 경우는 score 기준 정렬 유지
-                    return 0;
+                    // 시작 여부가 같을 경우 점수로 정렬
+                    return Double.compare(dto2.getScore(), dto1.getScore());
                 })
-                // 중복 제거
-                .distinct()
-                // 최대 5개만 선택
-                .limit(5)
+                .distinct()  // 중복 제거
+                .limit(5)    // 최대 5개 제한
                 .collect(Collectors.toList());
     }
 

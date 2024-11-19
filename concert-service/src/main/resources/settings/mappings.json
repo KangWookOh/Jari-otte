@@ -6,13 +6,39 @@
       },
       "title": {
         "type": "text",
-        "analyzer": "nori_edge_ngram_analyzer",
-        "search_analyzer": "nori_analyzer"
+        "fields": {
+          "autocomplete": {
+            "type": "text",
+            "analyzer": "nori_edge_ngram_analyzer",
+            "search_analyzer": "nori_analyzer"
+          },
+          "search": {
+            "type": "text",
+            "analyzer": "nori_ngram_analyzer"
+          },
+          "default": {
+            "type": "text",
+            "analyzer": "nori_analyzer"
+          }
+        }
       },
       "artists": {
         "type": "text",
-        "analyzer": "nori_edge_ngram_analyzer",
-        "search_analyzer": "nori_analyzer"
+        "fields": {
+          "autocomplete": {
+            "type": "text",
+            "analyzer": "nori_edge_ngram_analyzer",
+            "search_analyzer": "nori_analyzer"
+          },
+          "search": {
+            "type": "text",
+            "analyzer": "nori_ngram_analyzer"
+          },
+          "default": {
+            "type": "text",
+            "analyzer": "nori_analyzer"
+          }
+        }
       },
       "performDate": {
         "type": "date",
