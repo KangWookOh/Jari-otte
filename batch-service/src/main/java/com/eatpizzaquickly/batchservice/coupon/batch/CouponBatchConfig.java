@@ -1,6 +1,6 @@
 package com.eatpizzaquickly.batchservice.coupon.batch;
 
-import com.eatpizzaquickly.batchservice.coupon.client.CouponServiceClient;
+import com.eatpizzaquickly.batchservice.common.client.CouponServiceClient;
 import com.eatpizzaquickly.batchservice.coupon.dto.CouponDto;
 import com.eatpizzaquickly.batchservice.coupon.dto.UserCouponDto;
 import lombok.RequiredArgsConstructor;
