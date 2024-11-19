@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(uniqueConstraints = {
         @UniqueConstraint(
-                columnNames = { "paymentId" }) })
+                columnNames = {"paymentId"})})
 public class TempPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

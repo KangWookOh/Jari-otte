@@ -4,7 +4,6 @@ package com.eatpizzaquickly.batchservice.settlement.processor;
 import com.eatpizzaquickly.batchservice.common.client.ConcertClient;
 import com.eatpizzaquickly.batchservice.settlement.dto.request.PaymentRequestDto;
 import com.eatpizzaquickly.batchservice.settlement.dto.response.PaymentResponseDto;
-import com.eatpizzaquickly.batchservice.settlement.entity.HostPoint;
 import com.eatpizzaquickly.batchservice.settlement.entity.SettlementStatus;
 import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +24,6 @@ public class PaymentProcessor {
         return payment -> {
             payment.setSettlementStatus(SettlementStatus.SETTLED);
             return payment;
-        };
-    }
-
-    public ItemProcessor<TempPayment, HostPoint> pointAdditionProcessor() {
-        return payment -> {
-            Long payId = payment.getPaymentId();
-            Long hostId = concertClient.findHostIdByConcertId(payment.getConcertId());
-            Long points = calculatePoints(payment.getAmount()); // 수수료 떼고 정산
-            return new HostPoint(payId, hostId, points);
         };
     }
 

@@ -2,14 +2,12 @@ package com.eatpizzaquickly.batchservice.settlement.writer;
 
 
 import com.eatpizzaquickly.batchservice.common.client.PaymentClient;
-import com.eatpizzaquickly.batchservice.common.exception.BadRequestException;
 import com.eatpizzaquickly.batchservice.settlement.dto.request.PaymentRequestDto;
 import com.eatpizzaquickly.batchservice.settlement.entity.TempPayment;
 import com.eatpizzaquickly.batchservice.settlement.repository.TempPaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,9 +17,6 @@ import javax.naming.ServiceUnavailableException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.eatpizzaquickly.batchservice.settlement.reader.PaymentReader.OFFSET_KEY;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +26,6 @@ public class PaymentWriter {
     private final PaymentClient paymentClient;
     private final TempPaymentRepository tempPaymentRepository;
     private final JdbcTemplate jdbcTemplate;
-    private final RedisTemplate redisTemplate;
 
     public ItemWriter<TempPayment> tempPaymentWriter() {
         return tempPayments -> {
