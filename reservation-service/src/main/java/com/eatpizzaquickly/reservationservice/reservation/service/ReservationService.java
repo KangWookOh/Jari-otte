@@ -6,20 +6,15 @@ import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationRes
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationResponseDto;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
-import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.ReservationStatus;
 import com.eatpizzaquickly.reservationservice.reservation.exception.ReservationCreationException;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpServerErrorException;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)

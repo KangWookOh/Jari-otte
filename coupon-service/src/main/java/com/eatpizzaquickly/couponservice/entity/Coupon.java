@@ -1,4 +1,6 @@
 package com.eatpizzaquickly.couponservice.entity;
+import com.eatpizzaquickly.couponservice.enums.CouponType;
+import com.eatpizzaquickly.couponservice.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

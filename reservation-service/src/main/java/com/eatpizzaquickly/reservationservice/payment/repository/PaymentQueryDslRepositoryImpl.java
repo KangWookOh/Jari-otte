@@ -2,8 +2,8 @@ package com.eatpizzaquickly.reservationservice.payment.repository;
 
 
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
-import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
-import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;

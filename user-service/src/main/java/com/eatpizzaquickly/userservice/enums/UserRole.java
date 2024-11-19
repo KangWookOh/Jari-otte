@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.userservice.entity;
+package com.eatpizzaquickly.userservice.enums;
 
 import jakarta.ws.rs.NotFoundException;
 

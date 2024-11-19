@@ -1,6 +1,6 @@
 package com.eatpizzaquickly.reservationservice.payment.dto.response;
 
-import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

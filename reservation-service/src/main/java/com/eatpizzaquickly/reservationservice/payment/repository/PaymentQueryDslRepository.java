@@ -2,8 +2,8 @@ package com.eatpizzaquickly.reservationservice.payment.repository;
 
 
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponseDto;
-import com.eatpizzaquickly.reservationservice.payment.entity.PayStatus;
-import com.eatpizzaquickly.reservationservice.payment.entity.SettlementStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;

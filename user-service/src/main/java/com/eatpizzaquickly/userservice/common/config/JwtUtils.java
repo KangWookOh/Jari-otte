@@ -1,7 +1,7 @@
 package com.eatpizzaquickly.userservice.common.config;
 
 import com.eatpizzaquickly.userservice.common.exception.NotFoundException;
-import com.eatpizzaquickly.userservice.entity.UserRole;
+import com.eatpizzaquickly.userservice.enums.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

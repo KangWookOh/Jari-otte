@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.concertservice.entity;
 
+import com.eatpizzaquickly.concertservice.enums.Category;
 import com.eatpizzaquickly.concertservice.util.StringListConvertor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

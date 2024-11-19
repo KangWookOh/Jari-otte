@@ -5,7 +5,7 @@ import com.eatpizzaquickly.concertservice.dto.request.ConcertCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.request.ConcertUpdateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
-import com.eatpizzaquickly.concertservice.entity.Category;
+import com.eatpizzaquickly.concertservice.enums.Category;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
 import com.eatpizzaquickly.concertservice.entity.Venue;

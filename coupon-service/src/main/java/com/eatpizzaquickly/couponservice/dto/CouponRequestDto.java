@@ -1,8 +1,8 @@
 package com.eatpizzaquickly.couponservice.dto;
 
 
-import com.eatpizzaquickly.couponservice.entity.CouponType;
-import com.eatpizzaquickly.couponservice.entity.DiscountType;
+import com.eatpizzaquickly.couponservice.enums.CouponType;
+import com.eatpizzaquickly.couponservice.enums.DiscountType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

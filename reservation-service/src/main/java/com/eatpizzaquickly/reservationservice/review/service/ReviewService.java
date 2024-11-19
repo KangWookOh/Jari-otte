@@ -4,7 +4,7 @@ import com.eatpizzaquickly.reservationservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.common.exception.UnauthorizedException;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
-import com.eatpizzaquickly.reservationservice.reservation.entity.ReservationStatus;
+import com.eatpizzaquickly.reservationservice.common.enums.ReservationStatus;
 import com.eatpizzaquickly.reservationservice.reservation.repository.ReservationRepository;
 import com.eatpizzaquickly.reservationservice.review.client.concert.ConcertDetailResponse;
 import com.eatpizzaquickly.reservationservice.review.client.concert.ConcertServiceClient;
