@@ -35,7 +35,9 @@ public class QueueRedisRepository {
     public void addToQueue(Long concertId, Long userId) {
         String queueKey = RedisUtil.getQueueKey(concertId);
         Long timestamp = getCurrentSecond();
-        redisTemplate.opsForZSet().add(queueKey, String.valueOf(userId), timestamp); // 대기열에 추가
+        if (redisTemplate.opsForZSet().rank(queueKey, String.valueOf(userId)) == null) { // 대기열에 추가
+            redisTemplate.opsForZSet().add(queueKey, String.valueOf(userId), timestamp);
+        }
     }
 
     public Integer getQueuePosition(Long concertId, Long userId) {
