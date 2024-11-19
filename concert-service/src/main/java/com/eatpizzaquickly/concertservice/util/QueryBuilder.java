@@ -50,12 +50,6 @@ public class QueryBuilder {
                 .type(TextQueryType.PhrasePrefix)               // phrase_prefix 타입으로 설정하여 접두사 일치 허용
         );
 
-        // Wildcard Query 추가: artists 필드에 대해 중간에 포함된 텍스트도 매칭
-        WildcardQuery wildcardQuery = WildcardQuery.of(w -> w
-                .field("artists")
-                .value("*" + query + "*")  // 검색어가 포함된 부분 일치 허용
-        );
-
         // BoolQuery에 추가할 필터 리스트 생성
         List<Query> filters = new ArrayList<>();
 
@@ -93,10 +87,9 @@ public class QueryBuilder {
         filters.add(new Query.Builder().term(deletedFilter).build());
 
         return BoolQuery.of(b -> b
+                .filter(filters)                                                    // 필터 조건 추가 (필터가 있을 경우에만 적용)
                 .should(Query.of(q -> q.multiMatch(matchQueryWithFuzziness)))        // 첫 번째 쿼리: 오타 허용
                 .should(Query.of(q -> q.multiMatch(matchQueryWithPhrasePrefix)))    // 두 번째 쿼리: 접두사 일치
-                .should(Query.of(q -> q.wildcard(wildcardQuery)))                   // Wildcard 쿼리 추가
-                .filter(filters)                                                    // 필터 조건 추가 (필터가 있을 경우에만 적용)
         );
     }
 }

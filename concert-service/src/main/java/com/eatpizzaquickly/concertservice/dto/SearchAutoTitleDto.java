@@ -13,17 +13,18 @@ import java.util.List;
 @EqualsAndHashCode(of = "auto")
 public class SearchAutoTitleDto {
     private String auto; // 개별 검색어 항목 (콘서트 이름 또는 아티스트 이름)
+    private double score; // 점수 필드 추가
 
-    public static List<SearchAutoTitleDto> from(ConcertSearch concertSearch) {
+    public static List<SearchAutoTitleDto> from(ConcertSearch concertSearch, double score) {
         List<SearchAutoTitleDto> autoList = new ArrayList<>();
 
         // 콘서트 제목 추가
-        autoList.add(new SearchAutoTitleDto(concertSearch.getTitle()));
+        autoList.add(new SearchAutoTitleDto(concertSearch.getTitle(), score));
 
         // 아티스트 목록이 있을 경우, 각 아티스트를 개별 항목으로 추가
         if (concertSearch.getArtists() != null && !concertSearch.getArtists().isEmpty()) {
             concertSearch.getArtists().forEach(artist ->
-                    autoList.add(new SearchAutoTitleDto(artist)) // 각 아티스트를 개별적으로 추가
+                    autoList.add(new SearchAutoTitleDto(artist, score)) // 각 아티스트를 개별적으로 추가
             );
         }
 

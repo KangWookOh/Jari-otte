@@ -37,7 +37,7 @@ public class SearchTermController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,   // 시작 날짜 (선택적)
             @RequestParam(name = "endDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,     // 종료 날짜 (선택적)
-            @PageableDefault Pageable pageable
+            @PageableDefault(size = 50) Pageable pageable
     ) {
         SearchConcertListDto searchConcertListDto = searchService.searchConcerts(query, startDate, endDate, pageable);
         return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", searchConcertListDto));
