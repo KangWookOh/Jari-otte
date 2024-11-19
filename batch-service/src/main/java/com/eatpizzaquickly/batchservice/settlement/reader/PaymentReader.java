@@ -2,6 +2,7 @@ package com.eatpizzaquickly.batchservice.settlement.reader;
 
 import com.eatpizzaquickly.batchservice.common.client.PaymentClient;
 import com.eatpizzaquickly.batchservice.common.exception.NotFoundException;
+import com.eatpizzaquickly.batchservice.settlement.config.RowMapperConfig;
 import com.eatpizzaquickly.batchservice.settlement.dto.response.PaymentResponseDto;
 import com.eatpizzaquickly.batchservice.settlement.entity.PayStatus;
 import com.eatpizzaquickly.batchservice.settlement.entity.SettlementStatus;
@@ -12,20 +13,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.PagingQueryProvider;
+import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.sql.DataSource;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.eatpizzaquickly.batchservice.settlement.common.BatchConstant.CHUNK_SIZE;
 
@@ -39,6 +39,9 @@ public class PaymentReader {
     private final EntityManagerFactory entityManagerFactory;
     public static final String OFFSET_KEY = "current_offset";
     private final RedisTemplate<String, String> redisTemplate;
+    private final DataSource dataSource;
+    private final PagingQueryProvider pagingQueryProvider;
+    private final RowMapperConfig rowMapperConfig;
 
     public ItemReader<PaymentResponseDto> paidPaymentReader() {
         return new ItemReader<PaymentResponseDto>() {
@@ -49,7 +52,7 @@ public class PaymentReader {
                 // 배치 작업 시작 시, Redis에 키가 없으면 초기값 설정
                 Boolean hasKey = redisTemplate.hasKey(OFFSET_KEY);
                 if (Boolean.FALSE.equals(hasKey)) {
-                    redisTemplate.opsForValue().set(OFFSET_KEY, "0", 60, TimeUnit.SECONDS);
+                    redisTemplate.opsForValue().set(OFFSET_KEY, "0", 60000, TimeUnit.MILLISECONDS);
                     log.info("Offset Initialize");
                 }
             }
@@ -75,7 +78,7 @@ public class PaymentReader {
                             .max()
                             .orElseThrow(() -> new NotFoundException("진행할 payment가 없습니다."));
 
-                    redisTemplate.opsForValue().set(OFFSET_KEY, String.valueOf(maxPaymentId));
+                    redisTemplate.opsForValue().set(OFFSET_KEY, String.valueOf(maxPaymentId), 60000, TimeUnit.MILLISECONDS);
                 }
 
                 // 첫 번째 데이터를 반환하고, 리스트에서 제거
@@ -86,11 +89,23 @@ public class PaymentReader {
         };
     }
 
-
     @Bean
-    public JpaPagingItemReader<TempPayment> pointAdditionReader() {
-        return createReader("pointAdditionReader", SettlementStatus.PROGRESS);
+    public JdbcPagingItemReader<TempPayment> pointAdditionReader() {
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("status", SettlementStatus.PROGRESS.name());
+
+        return new JdbcPagingItemReaderBuilder<TempPayment>()
+                .name("pointAdditionReader")
+                .dataSource(dataSource)
+                .fetchSize(CHUNK_SIZE)
+                .pageSize(CHUNK_SIZE) // 페이지 크기 조정
+                .queryProvider(pagingQueryProvider)
+                .parameterValues(parameterValues)
+                .rowMapper(rowMapperConfig.tempPaymentRowMapper())
+                .saveState(true) // 상태 저장 여부
+                .build();
     }
+
 
     @Bean
     public JpaPagingItemReader<TempPayment> updatePaymentReader() {
@@ -111,6 +126,5 @@ public class PaymentReader {
                 .parameterValues(Collections.singletonMap("status", status))
                 .build();
     }
-
 
 }
