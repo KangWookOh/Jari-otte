@@ -1,11 +1,8 @@
 package com.eatpizzaquickly.concertservice.client;
 
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
-import com.eatpizzaquickly.concertservice.exception.detail.ReservationEventPublishingException;
-import com.eatpizzaquickly.concertservice.service.KafkaFailedMessageService;
+import com.eatpizzaquickly.concertservice.exception.detail.EventPublishingException;
 import com.eatpizzaquickly.concertservice.util.SlackNotifier;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,20 +24,24 @@ public class KafkaEventProducer {
     private String seatReservationCreatedTopic;
 
     public void produceSeatReservationEvent(SeatReservationEvent event){
-        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(seatReservationCreatedTopic, event);
+        produceEvent(seatReservationCreatedTopic, event);
+    }
+
+    private void produceEvent(String topic, Object event) {
+        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, event);
         future.whenComplete((result, ex) -> {
             if (ex != null) {
-                log.error("좌석 예매 이벤트 발행 실패: {}, Exception: {}", event.toString(), ex.getMessage());
+                log.error("이벤트 발행 실패: {}, Exception: {}", event.toString(), ex.getMessage());
                 notifyFailureMessage(event, ex);
-                throw new ReservationEventPublishingException();
+                throw new EventPublishingException();
             }
         });
     }
 
-    private void notifyFailureMessage(SeatReservationEvent event, Throwable ex) {
+    private void notifyFailureMessage(Object event, Throwable ex) {
         String message = String.format(
                 """
-                        [보상 트랜잭션 이벤트 발행 실패]
+                        [이벤트 발행 실패]
                         - Event: %s
                         - Error: %s
                         """,

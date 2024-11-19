@@ -6,7 +6,7 @@ public class RedisUtil {
         return "concert:%s:available_seats".formatted(concertId);
     }
 
-    public static String getViewCountKey() {
+    public static String getTopConcertsKey() {
         return "concert:view_count";
     }
 

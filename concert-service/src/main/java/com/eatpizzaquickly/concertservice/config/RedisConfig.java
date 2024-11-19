@@ -1,25 +1,23 @@
 package com.eatpizzaquickly.concertservice.config;
 
+import com.eatpizzaquickly.concertservice.client.RedisCacheSubscriber;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.redisson.Redisson;
+import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
-import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.time.Duration;
 
 @Configuration
 public class RedisConfig {
@@ -51,5 +49,32 @@ public class RedisConfig {
 
         template.afterPropertiesSet();
         return template;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
+                                                        MessageListenerAdapter listenerAdapter) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(listenerAdapter, new PatternTopic("cache-update-channel"));
+        return container;
+    }
+
+    @Bean
+    public MessageListenerAdapter listenerAdapter(RedisCacheSubscriber subscriber) {
+        return new MessageListenerAdapter(subscriber, "onMessage");
+    }
+
+    @Bean
+    public ApplicationRunner initializeTopViewedConcertsKey(RedissonClient redissonClient) {
+        return args -> {
+            String key = "concert:view_count"; // Redis 키
+            RScoredSortedSet<Long> sortedSet = redissonClient.getScoredSortedSet(key);
+
+            // 키 초기화 시 TTL 제거
+            if (sortedSet.remainTimeToLive() > 0) {
+                sortedSet.clearExpire();
+            }
+        };
     }
 }

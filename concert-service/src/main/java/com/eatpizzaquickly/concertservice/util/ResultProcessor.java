@@ -5,11 +5,12 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.eatpizzaquickly.concertservice.dto.SearchAutoTitleDto;
 import com.eatpizzaquickly.concertservice.dto.SearchConcertResponseDto;
 import com.eatpizzaquickly.concertservice.entity.ConcertSearch;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
+@Component
 public class ResultProcessor {
 
     public static List<SearchAutoTitleDto> processAutocompleteResults(SearchResponse<ConcertSearch> searchResponse, String query) {

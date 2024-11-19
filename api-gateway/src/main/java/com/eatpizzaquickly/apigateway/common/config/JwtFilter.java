@@ -38,10 +38,10 @@ public class JwtFilter implements WebFilter {
         // 인증 예외 경로 설정
         if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login")
                 || path.equals("/actuator/health") || path.equals("/actuator/prometheus")
-                || path.equals("/api/v1/users/sendmail") || path.equals("/api/v1/concerts/search")
+                || path.startsWith("/api/v1/users/sendmail") || path.startsWith("/api/v1/concerts/search")
                 || path.equals("/api/v1/concerts/search/autocomplete") || path.equals("/api/v1/users/oauth/kakao")
                 || path.equals("/api/v1/users//oauth/kakao/callback/")
-                || path.equals("/api/v1/concerts/popular")
+                || path.equals("/api/v1/concerts/top")
                 || path.equals("/api/v1/concerts/")
                 || (HttpMethod.GET.equals(request.getMethod()) && path.equals("/api/v1/concerts"))
         ) {
