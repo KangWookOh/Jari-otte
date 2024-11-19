@@ -22,12 +22,11 @@ public class SeatController {
         return ResponseEntity.ok(ApiResponse.success("좌석 조회 성공", seatListResponse));
     }
 
-    @PostMapping("/{concertId}/seats/{seatId}")
+    @PostMapping("/{concertId}/seats")
     public ResponseEntity<ApiResponse<Void>> reserveSeat(@PathVariable Long concertId,
-                                                         @PathVariable Long seatId,
                                                          @RequestHeader("X-Authenticated-User") Long userId,
                                                          @RequestBody SeatReservationRequest seatReservationRequest) {
-        seatService.reserveSeat(userId, concertId, seatId, seatReservationRequest);
+        seatService.reserveSeat(userId, concertId, seatReservationRequest);
         return ResponseEntity.ok(ApiResponse.success("좌석 예매 성공"));
     }
 }

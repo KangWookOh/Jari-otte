@@ -1,7 +1,10 @@
 package com.eatpizzaquickly.concertservice.repository;
 
+import com.eatpizzaquickly.concertservice.dto.SeatDto;
+import com.eatpizzaquickly.concertservice.util.JsonUtil;
 import com.eatpizzaquickly.concertservice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
@@ -12,13 +15,16 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @RequiredArgsConstructor
 @Repository
 public class ConcertRedisRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final RedissonClient redissonClient;
+    private final JsonUtil jsonUtil;
 
     // 조회수 증가
     public void increaseViewCount(Long concertId) {
@@ -39,36 +45,37 @@ public class ConcertRedisRepository {
         return score != null;
     }
 
-    // 예약 가능한 좌석을 Redis에 추가
-    public void addAvailableSeats(Long concertId, List<Long> seatIds) {
+    // 예약 가능한 좌석을 Redis 에 추가
+    public void addAvailableSeats(Long concertId, List<SeatDto> seatDtoList) {
         RSet<String> availableSeats = redissonClient.getSet(RedisUtil.getAvailableSeatsKey(concertId));
-        for (Long seatId : seatIds) {
-            availableSeats.add(String.valueOf(seatId));
+        for (SeatDto seatDto : seatDtoList) {
+            String seatJson = jsonUtil.toJson(seatDto);
+            availableSeats.add(seatJson);
         }
     }
 
-    // Redis에서 잔여 좌석 수 조회
+    // Redis 에서 잔여 좌석 수 조회
     public int getAvailableSeatCount(Long concertId) {
         String redisKey = RedisUtil.getAvailableSeatsKey(concertId);
         RSet<String> availableSeats = redissonClient.getSet(redisKey);
         return availableSeats.size();
     }
 
-    // 좌석을 다시 Redis에 추가 (예약 실패 시)
-    public void addSeatBackToAvailable(Long concertId, Long seatId) {
+    public void addSeatBackToAvailable(Long concertId, SeatDto seatDto) {
         String redisKey = RedisUtil.getAvailableSeatsKey(concertId);
         RSet<String> availableSeats = redissonClient.getSet(redisKey);
-        availableSeats.add(String.valueOf(seatId));
+        String seatJson = jsonUtil.toJson(seatDto);
+        availableSeats.add(seatJson);
     }
 
-    public void reserveSeat(Long concertId, Long seatId) {
+    public void reserveSeat(Long concertId, SeatDto seatDto) {
         String availableSeatsKey = RedisUtil.getAvailableSeatsKey(concertId);
-        String seatValue = String.valueOf(seatId);
-
+        String seatJson = jsonUtil.toJson(seatDto);
+        log.info("seatJson: {}", seatJson);
         String result = redisTemplate.execute(
                 reserveSeatScript(),
                 List.of(availableSeatsKey),
-                seatValue
+                seatJson
         );
 
         SeatReservationCode.checkReservationResult(SeatReservationCode.find(result));
@@ -95,5 +102,13 @@ public class ConcertRedisRepository {
     public void resetTopConcerts() {
         String topConcertsKey = RedisUtil.getTopConcertsKey();
         redissonClient.getScoredSortedSet(topConcertsKey).delete();
+    }
+
+    public Set<String> getAvailableSeats(Long concertId) {
+        String redisKey = RedisUtil.getAvailableSeatsKey(concertId);
+
+        RSet<String> availableSeats = redissonClient.getSet(redisKey);
+
+        return availableSeats.readAll();
     }
 }
