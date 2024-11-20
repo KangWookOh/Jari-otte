@@ -21,9 +21,4 @@ public class WaitingQueueController {
         return ResponseEntity.ok(ApiResponse.success("대기열 조회 성공", queueResponse));
     }
 
-    @GetMapping("/{concertId}/queue/process")
-    public ResponseEntity<ApiResponse<Void>> processWaitingQueue(@PathVariable Long concertId) {
-        waitingQueueService.processQueue(concertId);
-        return ResponseEntity.ok(ApiResponse.success("대기열 작업 성공"));
-    }
 }

@@ -1,6 +1,7 @@
 package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.client.KafkaEventProducer;
+import com.eatpizzaquickly.concertservice.client.RedisCachePublisher;
 import com.eatpizzaquickly.concertservice.dto.event.ReservationCompensationEvent;
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
@@ -43,6 +44,7 @@ public class SeatService {
     private final SlackNotifier slackNotifier;
     private final JsonUtil jsonUtil;
     private final ConcertCacheService concertCacheService;
+    private final RedisCachePublisher redisPublisher;
 
     public SeatListResponse findSeatList(Long concertId, Long userId) {
         ConcertDetailResponse concert = concertCacheService.findConcertWithVenueCache(concertId);
@@ -54,13 +56,17 @@ public class SeatService {
         }
 
         // 대기열 활성화 여부 확인
-        if (waitingQueueRedisRepository.isQueueActive(concertId)) {
-            handleActiveQueue(concertId, userId);
+        if (waitingQueueRedisRepository.isWaitingQueueActive(concertId)) {
+            addToWaitingQueue(concertId, userId);
         }
 
         // 대기열이 비활성화된 경우, 초당 요청 제한 확인
         if (waitingQueueRedisRepository.isRequestLimitExceeded(concertId)) {
-            waitingQueueRedisRepository.addToQueue(concertId, userId);
+            waitingQueueRedisRepository.addToWaitingQueue(concertId, userId);
+
+            // 대기열 활성화 이벤트 발행
+            redisPublisher.publishActivateWaitingQueue(concertId); // Pub/Sub 메시지 발행
+
             throw new RequestLimitExceededException(concertId);
         }
 
@@ -135,6 +141,7 @@ public class SeatService {
         concert.updateSeatCount(availableSeatCount);
         concertRepository.save(concert); // 업데이트된 좌석 수 저장
     }
+
     @Transactional
     public void compensateReservation(ReservationCompensationEvent event) {
         Long concertId = event.getConcertId();
@@ -167,12 +174,9 @@ public class SeatService {
         concertRedisRepository.addSeatBackToAvailable(concertId, SeatDto.from(seat));
     }
 
-    private void handleActiveQueue(Long concertId, Long userId) {
-        if (!waitingQueueRedisRepository.isInReservation(concertId, userId)) {
-            waitingQueueRedisRepository.addToQueue(concertId, userId);
-            waitingQueueRedisRepository.addActiveConcert(concertId);
-            throw new RequestLimitExceededException(concertId);
-        }
+    private void addToWaitingQueue(Long concertId, Long userId) {
+        waitingQueueRedisRepository.addToWaitingQueue(concertId, userId);
+        throw new RequestLimitExceededException(concertId);
     }
 
     private Map<Integer, SeatDto> getCachedSeatsMap(Long concertId) {
