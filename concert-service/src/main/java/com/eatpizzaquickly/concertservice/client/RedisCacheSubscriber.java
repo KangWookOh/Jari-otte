@@ -19,6 +19,6 @@ public class RedisCacheSubscriber {
     public void onMessage(String concertId) {
         log.info("Received cache update event for concertId: {}", concertId);
         concertService.findConcert(Long.parseLong(concertId));
-        concertCacheService.putTopViewedConcertsCache();
+        concertCacheService.putTopConcertsCache();
     }
 }
