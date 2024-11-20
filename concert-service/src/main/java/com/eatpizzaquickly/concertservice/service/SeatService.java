@@ -5,6 +5,8 @@ import com.eatpizzaquickly.concertservice.dto.event.ReservationCompensationEvent
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
+import com.eatpizzaquickly.concertservice.dto.response.AvailableSeatCountResponse;
+import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
 import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;
@@ -40,11 +42,13 @@ public class SeatService {
     private final KafkaEventProducer kafkaEventProducer;
     private final SlackNotifier slackNotifier;
     private final JsonUtil jsonUtil;
+    private final ConcertCacheService concertCacheService;
 
     public SeatListResponse findSeatList(Long concertId, Long userId) {
         //TODO: CacheService 에서 호출해서 캐싱할것
-        Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
-        Integer venueSeatCount = concert.getVenue().getSeatCount();
+//        Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
+        ConcertDetailResponse concert = concertCacheService.findConcertWithVenueCache(concertId);
+        Integer venueSeatCount = concert.getSeatCount();
 
         // 이미 "예매 중" 상태인 사용자라면 바로 좌석 정보를 조회
         if (waitingQueueRedisRepository.isInReservation(concertId, userId)) {
@@ -71,6 +75,16 @@ public class SeatService {
         }
 
         return fetchSeatList(concertId, venueSeatCount);
+    }
+
+    public AvailableSeatCountResponse getAvailableSeatCount(Long concertId) {
+        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
+        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
+            reloadSeatsFromDatabase(concertId);
+        }
+
+        int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
+        return AvailableSeatCountResponse.of(availableSeatCount);
     }
 
     @Transactional
@@ -142,24 +156,8 @@ public class SeatService {
         return SeatListResponse.of(Arrays.asList(seatDtoArray));
     }
 
-    private Map<Integer, SeatDto> getCachedSeatsMap(Long concertId) {
-        Set<String> availableSeats = Optional.ofNullable(concertRedisRepository.getAvailableSeats(concertId))
-                .orElseGet(() -> {
-                    reloadSeatsFromDatabase(concertId);
-                    return concertRedisRepository.getAvailableSeats(concertId);
-                });
-
-        // 한 번의 변환으로 Map 생성
-        return availableSeats.stream()
-                .map(seatJson -> jsonUtil.toObject(seatJson, SeatDto.class))
-                .collect(Collectors.toMap(
-                        SeatDto::getSeatNumber,
-                        Function.identity(),
-                        (existing, replacement) -> existing
-                ));
-    }
-
     // Redis 상태를 DB로 동기화
+
     @Transactional
     public void syncAvailableSeatsToDatabase(Long concertId) {
         int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
@@ -172,7 +170,6 @@ public class SeatService {
         concert.updateSeatCount(availableSeatCount);
         concertRepository.save(concert); // 업데이트된 좌석 수 저장
     }
-
     @Transactional
     public void compensateReservation(ReservationCompensationEvent event) {
         Long concertId = event.getConcertId();
@@ -192,7 +189,7 @@ public class SeatService {
             waitingQueueRedisRepository.markInReservation(concertId, userId);
 
             log.info("보상 트랜잭션 완료 - concertId: {}, seatId: {}, userId: {}", concertId, seatId, userId);
-            notifyCompensateReservationSuccess(event);
+            slackNotifier.notifyCompensateReservationSuccess(event);
         } catch (Exception e) {
             log.info("보상 트랜잭션 실패 - concertId: {}, seatId: {}, userId: {}", concertId, seatId, userId);
             throw new CompensateReservationFailureException();
@@ -207,17 +204,20 @@ public class SeatService {
         }
     }
 
-    private void notifyCompensateReservationSuccess(ReservationCompensationEvent event) {
-        String message = String.format(
-                """
-                        [보상 트랜잭션 완료]
-                        - Concert ID: %d
-                        - Seat ID: %d
-                        - User ID: %d
-                        """,
-                event.getConcertId(), event.getSeatId(), event.getUserId()
-        );
+    private Map<Integer, SeatDto> getCachedSeatsMap(Long concertId) {
+        Set<String> availableSeats = Optional.ofNullable(concertRedisRepository.getAvailableSeats(concertId))
+                .orElseGet(() -> {
+                    reloadSeatsFromDatabase(concertId);
+                    return concertRedisRepository.getAvailableSeats(concertId);
+                });
 
-        slackNotifier.sendNotification(message);
+        // 한 번의 변환으로 Map 생성
+        return availableSeats.stream()
+                .map(seatJson -> jsonUtil.toObject(seatJson, SeatDto.class))
+                .collect(Collectors.toMap(
+                        SeatDto::getSeatNumber,
+                        Function.identity(),
+                        (existing, replacement) -> existing
+                ));
     }
 }

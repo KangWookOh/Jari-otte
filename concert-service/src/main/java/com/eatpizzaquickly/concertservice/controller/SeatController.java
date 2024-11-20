@@ -2,6 +2,7 @@ package com.eatpizzaquickly.concertservice.controller;
 
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
 import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
+import com.eatpizzaquickly.concertservice.dto.response.AvailableSeatCountResponse;
 import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.service.SeatService;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +29,11 @@ public class SeatController {
                                                          @RequestBody SeatReservationRequest seatReservationRequest) {
         seatService.reserveSeat(userId, concertId, seatReservationRequest);
         return ResponseEntity.ok(ApiResponse.success("좌석 예매 성공"));
+    }
+
+    @GetMapping("/{concertId}/seats/count")
+    public ResponseEntity<ApiResponse<AvailableSeatCountResponse>> getAvailableSeatCount(@PathVariable Long concertId) {
+        AvailableSeatCountResponse availableSeatCount = seatService.getAvailableSeatCount(concertId);
+        return ResponseEntity.ok(ApiResponse.success("잔여 좌석 수 조회 성공", availableSeatCount));
     }
 }
