@@ -92,23 +92,26 @@ public class ConcertService {
         return ConcertDetailResponse.from(concert, venue, venue.getSeatCount());
     }
 
-    public ConcertListResponse findAllConcerts(Pageable pageable) {
+    public ConcertListResponse findAllConcerts1(Pageable pageable) {
         List<ConcertSimpleDto> concertSimpleDtoList = concertRepository.findAll(pageable).map(ConcertSimpleDto::from).toList();
         return ConcertListResponse.of(concertSimpleDtoList);
     }
 
+    public ConcertListResponse findAllConcerts() {
+        List<ConcertSimpleDto> concertSimpleDtoList = concertRepository.findAll().stream().map(ConcertSimpleDto::from).toList();
+        return ConcertListResponse.of(concertSimpleDtoList);
+    }
+
     public ConcertDetailResponse findConcert(Long concertId) {
+        Concert concert = concertRepository.findById(concertId).orElseThrow(NotFoundException::new);
+        increaseViewCount(concertId);
+        return ConcertDetailResponse.from(concert);
+    }
+
+    public ConcertDetailResponse findConcertWithVenue(Long concertId) {
         Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
         increaseViewCount(concertId);
-
-        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
-        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
-            reloadSeatsFromDatabase(concertId);
-        }
-
-        int availableSeatCount = concertRedisRepository.getAvailableSeatCount(concertId);
-
-        return ConcertDetailResponse.from(concert, concert.getVenue(), availableSeatCount);
+        return ConcertDetailResponse.from(concert);
     }
 
     // 삭제
@@ -160,8 +163,8 @@ public class ConcertService {
     }
 
     @Transactional
-    public void updateConcert(Long concertId, ConcertUpdateRequest concertUpdateRequest) {
-        Concert concert = concertRepository.findById(concertId).orElseThrow(NotFoundException::new);
+    public ConcertDetailResponse updateConcert(Long concertId, ConcertUpdateRequest concertUpdateRequest) {
+        Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
         concert.updateTitle(concertUpdateRequest.getTitle());
         concert.updateDescription(concertUpdateRequest.getDescription());
         concert.updateThumbnailUrl(concertUpdateRequest.getThumbnailUrl());
@@ -169,6 +172,8 @@ public class ConcertService {
         if (isTopConcert(concertId)) {
             redisCachePublisher.publishCacheUpdate(concertId);
         }
+
+        return ConcertDetailResponse.from(concert);
     }
 
     @Transactional
@@ -176,15 +181,9 @@ public class ConcertService {
         concertRedisRepository.resetTopConcerts();
     }
 
-    private void reloadSeatsFromDatabase(Long concertId) { //TODO : 변경
-        List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
-        List<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).toList();
-        List<SeatDto> seatDtoList = availableSeats.stream().map(SeatDto::from).toList();
-        concertRedisRepository.addAvailableSeats(concertId, seatDtoList);
-    }
-
     // 인기 공연 여부 확인 메서드
     private boolean isTopConcert(Long concertId) {
         return concertRedisRepository.isTopConcert(concertId);
     }
+
 }

@@ -1,6 +1,8 @@
 package com.eatpizzaquickly.concertservice.config;
 
 
+import com.eatpizzaquickly.concertservice.dto.response.ConcertDetailResponse;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

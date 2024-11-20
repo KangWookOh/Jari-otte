@@ -5,10 +5,7 @@ import com.eatpizzaquickly.batchservice.settlement.dto.response.ConcertHostRespo
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 @FeignClient(name = "concert-service")
 public interface ConcertClient {
@@ -19,7 +16,7 @@ public interface ConcertClient {
     ResponseEntity<ConcertHostResponseDto> findHostIdsByConcertIds(@RequestBody HostIdRequestDto hostIdRequestDto);
 
     @CircuitBreaker(name = CIRCUIT_BREAKER_NAME, fallbackMethod = "resetTopConcertsFallback")
-    @PostMapping("/api/v1/concerts/top")
+    @DeleteMapping("/api/v1/concerts/top")
     void resetTopConcerts();
 
     // Fallback methods

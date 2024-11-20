@@ -31,12 +31,13 @@ public class ConcertController {
             @RequestParam(name = "host") Long hostId
     ) {
         ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest, hostId);
+        concertCacheService.putAllConcertsCache();
         return ResponseEntity.ok(ApiResponse.success("공연 생성 성공", concertDetailResponse));
     }
 
     @GetMapping("/{concertId}")
     public ResponseEntity<ApiResponse<ConcertDetailResponse>> getConcert(@PathVariable Long concertId) {
-        ConcertDetailResponse concertDetailResponse = concertService.findConcert(concertId);
+        ConcertDetailResponse concertDetailResponse = concertCacheService.findConcertWithVenueCache(concertId);
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertDetailResponse));
     }
 
@@ -45,17 +46,10 @@ public class ConcertController {
         return ResponseEntity.ok(concertService.findHostIdsByConcertIds(hostIdRequestDto));
     }
 
-    ;
-    // 삭제
-//    @GetMapping("/search")
-//    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertSearchList(@RequestParam(required = false) String keyword, @PageableDefault Pageable pageable) {
-//        ConcertListResponse concertListResponse = concertService.searchConcert(keyword, pageable);
-//        return ResponseEntity.ok(ApiResponse.success("공연 리스트 조회 성공", concertListResponse));
-//    }
-
     @GetMapping
-    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertList(@PageableDefault Pageable pageable) {
-        ConcertListResponse concertListResponse = concertService.findAllConcerts(pageable);
+    public ResponseEntity<ApiResponse<ConcertListResponse>> getConcertList() {
+//        ConcertListResponse concertListResponse = concertService.findAllConcerts();
+        ConcertListResponse concertListResponse = concertCacheService.findAllConcertsCache();
         return ResponseEntity.ok(ApiResponse.success("공연 조회 성공", concertListResponse));
     }
 
@@ -84,13 +78,12 @@ public class ConcertController {
     @PutMapping("/{concertId}")
     public ResponseEntity<ApiResponse<Void>> updateConcert(@PathVariable Long concertId,
                                                            @RequestBody ConcertUpdateRequest concertUpdateRequest) {
-        concertService.updateConcert(concertId, concertUpdateRequest);
-        String concertTitle = concertService.findConcert(concertId).getTitle();
-        System.out.println("updateConcert:concertTitle = " + concertTitle);
+        concertCacheService.putConcertCache(concertId, concertUpdateRequest);
+        concertCacheService.putAllConcertsCache();
         return ResponseEntity.ok(ApiResponse.success("공연 업데이트 성공"));
     }
 
-    @PostMapping("/top")
+    @DeleteMapping("/top")
     public void resetTopConcerts() {
         concertService.resetTopConcerts();
     }

@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.concertservice.util;
 
+import com.eatpizzaquickly.concertservice.dto.event.ReservationCompensationEvent;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,20 @@ public class SlackNotifier {
                 consumerRecord.offset(),
                 consumerRecord.value(),
                 exception.getMessage()
+        );
+
+        sendNotification(message);
+    }
+
+    public void notifyCompensateReservationSuccess(ReservationCompensationEvent event) {
+        String message = String.format(
+                """
+                        [보상 트랜잭션 완료]
+                        - Concert ID: %d
+                        - Seat ID: %d
+                        - User ID: %d
+                        """,
+                event.getConcertId(), event.getSeatId(), event.getUserId()
         );
 
         sendNotification(message);

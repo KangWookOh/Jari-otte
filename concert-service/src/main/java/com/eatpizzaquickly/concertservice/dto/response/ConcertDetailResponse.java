@@ -2,6 +2,10 @@ package com.eatpizzaquickly.concertservice.dto.response;
 
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Venue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +22,19 @@ public class ConcertDetailResponse {
     private String description;
     private Integer seatCount;
     private int price;
+
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime startDate;
+
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
+
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime performDate;
+
     private String thumbnailUrl;
 
     public static ConcertDetailResponse from(Concert concert, Venue venue, int seatCount) {
@@ -30,6 +44,21 @@ public class ConcertDetailResponse {
                 venue.getLocation(),
                 concert.getDescription(),
                 seatCount,
+                concert.getPrice(),
+                concert.getStartDate(),
+                concert.getEndDate(),
+                concert.getPerformDate(),
+                concert.getThumbnailUrl()
+        );
+    }
+
+    public static ConcertDetailResponse from(Concert concert) {
+        return new ConcertDetailResponse(
+                concert.getId(),
+                concert.getTitle(),
+                concert.getVenue().getLocation(),
+                concert.getDescription(),
+                concert.getVenue().getSeatCount(),
                 concert.getPrice(),
                 concert.getStartDate(),
                 concert.getEndDate(),
