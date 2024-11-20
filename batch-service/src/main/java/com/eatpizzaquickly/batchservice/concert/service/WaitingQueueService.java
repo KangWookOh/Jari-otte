@@ -1,86 +1,90 @@
 package com.eatpizzaquickly.batchservice.concert.service;
 
 import com.eatpizzaquickly.batchservice.concert.repository.WaitingQueueRedisRepository;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.*;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class WaitingQueueService {
-
     private final WaitingQueueRedisRepository waitingQueueRedisRepository;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // 단일 스레드 스케줄러
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    private final Map<Long, ScheduledFuture<?>> queueTasks = new ConcurrentHashMap<>();
 
-    private static final int WAITING_BATCH_SIZE = 10;
+    private static final int WAITING_BATCH_SIZE = 1;
 
-    public void processWaitingQueue(Long concertId) {
-        try {
-            log.info("Starting queue processing for concertId: {}", concertId);
-
-            // 대기열이 활성 상태이고 비어있지 않은 동안 반복
-            while (waitingQueueRedisRepository.isQueueActive(concertId)) {
-                processQueue(concertId);
-
-                if (waitingQueueRedisRepository.isQueueEmpty(concertId)) {
-                    waitingQueueRedisRepository.removeActiveConcert(concertId);
-                    log.info("Removed concertId {} from active queue list.", concertId);
-                    break;
-                }
-
-                Thread.sleep(3000); // 3초 대기
-            }
-
-            log.info("Queue processing completed for concertId: {}", concertId);
-        } catch (InterruptedException e) {
-            log.error("Queue processing interrupted for concertId: {}", concertId, e);
-            Thread.currentThread().interrupt(); // 인터럽트 상태 복원
-        } catch (Exception e) {
-            log.error("Failed to process queue for concertId: {}", concertId, e);
-        }
-    }
 
     public void startProcessingQueue(Long concertId) {
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                processQueue(concertId);
-            } catch (Exception e) {
-                log.error("Error processing queue for concertId: {}", concertId, e);
-            }
-        }, 0, 3, TimeUnit.SECONDS); // 0초 후 시작, 3초 간격으로 실행
-    }
-
-    //    private void processQueue(Long concertId) {
-//         대기열에서 사용자 가져오기
-//        List<Long> nextUsers = waitingQueueRedisRepository.getNextUsersFromQueue(concertId, WAITING_BATCH_SIZE);
-//
-//        for (Long userId : nextUsers) {
-//             "예매 중"으로 이동
-//            waitingQueueRedisRepository.markInReservation(concertId, userId);
-//
-//             대기열에서 제거
-//            waitingQueueRedisRepository.removeFromQueue(concertId, List.of(userId));
-//        }
-//    }
-    private void processQueue(Long concertId) {
-        if (waitingQueueRedisRepository.isQueueEmpty(concertId)) {
-            waitingQueueRedisRepository.removeActiveConcert(concertId);
-            log.info("Removed concertId {} from active queue list.", concertId);
-            scheduler.shutdown(); // 대기열이 비어있으면 스케줄러 중단
+        if (queueTasks.containsKey(concertId)) {
+            log.warn("이미 대기열 진행 작업 중입니다. concertId: {}", concertId);
             return;
         }
 
+        ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(
+                () -> processQueueSafely(concertId),
+                0, 3, TimeUnit.SECONDS
+        );
+        queueTasks.put(concertId, task);
+        log.info("대기열 진행 작업을 시작했습니다. concertId: {}", concertId);
+    }
+
+    private void processQueueSafely(Long concertId) {
+        try {
+            if (waitingQueueRedisRepository.isQueueEmpty(concertId)) {
+                stopProcessingQueue(concertId);
+                log.info("대기열이 존재하지 않기에 작업을 중단합니다. concertId: {}", concertId);
+                return;
+            }
+
+            processQueue(concertId);
+        } catch (Exception e) {
+            log.error("대기열 진행 작업중 예외가 발생했습니다. concertId: {}", concertId, e);
+        }
+    }
+
+    private void processQueue(Long concertId) {
         List<Long> nextUsers = waitingQueueRedisRepository.getNextUsersFromQueue(concertId, WAITING_BATCH_SIZE);
-        for (Long userId : nextUsers) {
-            waitingQueueRedisRepository.markInReservation(concertId, userId);
-            waitingQueueRedisRepository.removeFromQueue(concertId, List.of(userId));
+
+        if (!nextUsers.isEmpty()) {
+            try {
+                for (Long userId : nextUsers) {
+                    waitingQueueRedisRepository.markInReservation(concertId, userId);
+                    waitingQueueRedisRepository.removeFromQueue(concertId, List.of(userId));
+                }
+
+                log.debug("{}명의 사용자를 진행시켰습니다. concertId: {}", nextUsers.size(), concertId);
+            } catch (Exception e) {
+                log.error("대기열 진행 작업중 예외가 발생했습니다. concertId: {}", concertId, e);
+            }
+        }
+    }
+
+    public void stopProcessingQueue(Long concertId) {
+        ScheduledFuture<?> task = queueTasks.remove(concertId);
+        if (task != null) {
+            task.cancel(false);
+            log.info("대기열 진행 작업을 중단합니다. concertId: {}", concertId);
+        }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        queueTasks.forEach((concertId, task) -> task.cancel(false));
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 }
