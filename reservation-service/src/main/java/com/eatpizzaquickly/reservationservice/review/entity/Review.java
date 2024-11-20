@@ -6,10 +6,16 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Review {
 
     @Id
@@ -30,14 +36,26 @@ public class Review {
     @Column(name = "user_id")
     private Long userId;
 
+    // 생성일
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    // 수정일
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime modifiedDate;
+
     @Builder
-    public Review(Integer rating, String content, String nickname, String userEmail, Long userId, Long concertId) {
+    public Review(Integer rating, String content, String nickname, String userEmail, Long userId, Long concertId, LocalDateTime createdAt, LocalDateTime modifiedDate) {
         this.rating = rating;
         this.content = content;
         this.nickname = nickname;
         this.userEmail = userEmail;
         this.userId = userId;
         this.concertId = concertId;
+        this.createdAt = createdAt;
+        this.modifiedDate = modifiedDate;
     }
 
     public void update(ReviewRequestDto requestDto) {

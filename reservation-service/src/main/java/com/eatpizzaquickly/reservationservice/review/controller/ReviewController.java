@@ -30,7 +30,7 @@ public class ReviewController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> findReviews(
             @RequestParam Long concertId,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Page<ReviewResponseDto> result = reviewService.findReviews(concertId, page, size);
