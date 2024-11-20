@@ -2,7 +2,7 @@ package com.eatpizzaquickly.reservationservice.reservation.service;
 
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.common.exception.UnauthorizedException;
-import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationResponse;
+import com.eatpizzaquickly.reservationservice.reservation.client.feign.ConcertClient;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationResponseDto;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ReservationService {
+
     private final ReservationRepository reservationRepository;
+    private final ConcertClient concertClient;
 
     @Transactional
     public void createReservation(ReservationCreateRequest request) {
@@ -54,7 +56,12 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CANCELED);
 
+        //TODO: feign client 로 좌석 상태 원상 복구 시키기
+
+        concertClient.restoreSeat(reservation.getConcertId(), reservation.getSeatId());
+
         reservationRepository.save(reservation);
+
     }
 
     @Transactional(readOnly = true)

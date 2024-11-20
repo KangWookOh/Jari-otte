@@ -45,8 +45,6 @@ public class SeatService {
     private final ConcertCacheService concertCacheService;
 
     public SeatListResponse findSeatList(Long concertId, Long userId) {
-        //TODO: CacheService 에서 호출해서 캐싱할것
-//        Concert concert = concertRepository.findByIdWithVenue(concertId).orElseThrow(NotFoundException::new);
         ConcertDetailResponse concert = concertCacheService.findConcertWithVenueCache(concertId);
         Integer venueSeatCount = concert.getSeatCount();
 
@@ -88,7 +86,7 @@ public class SeatService {
     }
 
     @Transactional
-    public void reserveSeat(Long userId, Long concertId, SeatReservationRequest request) {
+    public void reserveSeat(Long concertId, Long userId, SeatReservationRequest request) {
         if (!waitingQueueRedisRepository.isInReservation(concertId, userId)) {
             throw new InvalidReservationFlowException();
         }
@@ -124,39 +122,6 @@ public class SeatService {
             throw new RuntimeException("좌석 예약 중 오류가 발생했습니다.");
         }
     }
-
-
-    private void reloadSeatsFromDatabase(Long concertId) {
-        List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
-        List<SeatDto> seatDtoList = availableSeats.stream().map(SeatDto::from).toList();
-        concertRedisRepository.addAvailableSeats(concertId, seatDtoList);
-    }
-
-    private SeatListResponse fetchSeatList(Long concertId, Integer venueSeatCount) {
-        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
-        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
-            reloadSeatsFromDatabase(concertId);
-        }
-
-        // 캐시된 좌석 정보를 한 번에 가져오기
-        Map<Integer, SeatDto> availableSeatsMap = getCachedSeatsMap(concertId);
-
-        // 배열 기반 최적화 (성능 최상)
-        SeatDto[] seatDtoArray = new SeatDto[venueSeatCount];
-        for (int seatNumber = 0; seatNumber < venueSeatCount; seatNumber++) {
-            seatDtoArray[seatNumber] = availableSeatsMap.getOrDefault(
-                    seatNumber + 1,
-                    SeatDto.builder()
-                            .seatNumber(seatNumber + 1)
-                            .isReserved(true)
-                            .build()
-            );
-        }
-
-        return SeatListResponse.of(Arrays.asList(seatDtoArray));
-    }
-
-    // Redis 상태를 DB로 동기화
 
     @Transactional
     public void syncAvailableSeatsToDatabase(Long concertId) {
@@ -196,6 +161,12 @@ public class SeatService {
         }
     }
 
+    public void restoreSeat(Long concertId, Long seatId) {
+        Seat seat = seatRepository.findById(seatId).orElseThrow(NotFoundException::new);
+        seat.changeReserved(false);
+        concertRedisRepository.addSeatBackToAvailable(concertId, SeatDto.from(seat));
+    }
+
     private void handleActiveQueue(Long concertId, Long userId) {
         if (!waitingQueueRedisRepository.isInReservation(concertId, userId)) {
             waitingQueueRedisRepository.addToQueue(concertId, userId);
@@ -219,5 +190,35 @@ public class SeatService {
                         Function.identity(),
                         (existing, replacement) -> existing
                 ));
+    }
+
+    private void reloadSeatsFromDatabase(Long concertId) {
+        List<Seat> availableSeats = seatRepository.findAvailableSeatsByConcertId(concertId);
+        List<SeatDto> seatDtoList = availableSeats.stream().map(SeatDto::from).toList();
+        concertRedisRepository.addAvailableSeats(concertId, seatDtoList);
+    }
+
+    private SeatListResponse fetchSeatList(Long concertId, Integer venueSeatCount) {
+        // Redis 에 좌석 데이터가 없으면 DB 에서 다시 로드
+        if (!concertRedisRepository.hasAvailableSeats(concertId)) {
+            reloadSeatsFromDatabase(concertId);
+        }
+
+        // 캐시된 좌석 정보를 한 번에 가져오기
+        Map<Integer, SeatDto> availableSeatsMap = getCachedSeatsMap(concertId);
+
+        // 배열 기반 최적화 (성능 최상)
+        SeatDto[] seatDtoArray = new SeatDto[venueSeatCount];
+        for (int seatNumber = 0; seatNumber < venueSeatCount; seatNumber++) {
+            seatDtoArray[seatNumber] = availableSeatsMap.getOrDefault(
+                    seatNumber + 1,
+                    SeatDto.builder()
+                            .seatNumber(seatNumber + 1)
+                            .isReserved(true)
+                            .build()
+            );
+        }
+
+        return SeatListResponse.of(Arrays.asList(seatDtoArray));
     }
 }
