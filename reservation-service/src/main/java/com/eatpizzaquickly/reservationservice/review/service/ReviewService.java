@@ -72,7 +72,7 @@ public class ReviewService {
         concertException(concertDetailResponse);
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Review> reviews = reviewRepository.findAllByConcertId(concertDetailResponse.getData().getConcertId(), pageable);
+        Page<Review> reviews = reviewRepository.findAllByConcertIdOrderByCreatedAtDesc(concertDetailResponse.getData().getConcertId(), pageable);
         return reviews.map(ReviewResponseDto::from);
     }
 
