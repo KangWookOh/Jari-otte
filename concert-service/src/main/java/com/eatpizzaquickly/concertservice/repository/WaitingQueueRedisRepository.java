@@ -16,7 +16,7 @@ import java.util.Set;
 public class WaitingQueueRedisRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private static final int MAX_REQUESTS_PER_SECOND = 100;
+    private static final int MAX_REQUESTS_PER_SECOND = 0; //TODO: 0 -> 100
 
     public boolean isRequestLimitExceeded(Long concertId) {
         String requestKey = RedisUtil.getRequestCountKey(concertId);
@@ -28,7 +28,7 @@ public class WaitingQueueRedisRepository {
         }
 
         if(requestCount == 1){
-            redisTemplate.expire(requestKey, Duration.ofSeconds(1)); // TTL 1초 설정
+            redisTemplate.expire(requestKey, Duration.ofSeconds(1000)); // TTL 1초 설정 TODO: 1000 -> 1
         }
 
         return requestCount > MAX_REQUESTS_PER_SECOND;
