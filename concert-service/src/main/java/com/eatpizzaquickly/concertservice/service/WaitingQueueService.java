@@ -14,8 +14,6 @@ public class WaitingQueueService {
 
     private final WaitingQueueRedisRepository waitingQueueRedisRepository;
 
-    private static final int WAITING_BATCH_SIZE = 10;
-
     public QueueResponse findPosition(Long concertId, Long userId) {
 
         String url = "/api/v1/concerts/%s/seats".formatted(concertId);
@@ -32,18 +30,5 @@ public class WaitingQueueService {
         }
 
         return new QueueResponse(position, url, false);
-    }
-
-    public void processQueue(Long concertId) {
-        // 대기열에서 사용자 가져오기
-        List<Long> nextUsers = waitingQueueRedisRepository.getNextUsersFromQueue(concertId, WAITING_BATCH_SIZE);
-
-        for (Long userId : nextUsers) {
-            // "예매 중"으로 이동
-            waitingQueueRedisRepository.markInReservation(concertId, userId);
-
-            // 대기열에서 제거
-            waitingQueueRedisRepository.removeFromQueue(concertId, List.of(userId));
-        }
     }
 }

@@ -28,7 +28,4 @@ public interface ConcertClient {
         // Top 콘서트 리셋 실패 시 로깅 처리
         // 배치 작업이므로 다음 배치 실행 시 재시도 될 것임
     }
-
-    @GetMapping("/api/v1/concerts/{concertId}/queue/process")
-    void processWaitingQueue(@PathVariable Long concertId);
 }
