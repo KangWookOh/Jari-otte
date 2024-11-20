@@ -1,24 +1,37 @@
 package com.eatpizzaquickly.reservationservice.review.client.concert;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class ConcertDetailResponse {
-    private final Long concertId;
-    private final String title;
-    private final String location;
-    private final String description;
-    private final LocalDateTime startDate;
-    private final LocalDateTime endDate;
+    private Long concertId;
+    private String title;
+    private String location;
+    private String description;
+    private Integer seatCount;
+    private int price;
 
-    public ConcertDetailResponse(Long concertId, String title, String location, String description, LocalDateTime startDate, LocalDateTime endDate) {
-        this.concertId = concertId;
-        this.title = title;
-        this.location = location;
-        this.description = description;
-        this.startDate = startDate;
-        this.endDate = endDate;
-    }
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime startDate;
+
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime endDate;
+
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime performDate;
+
+    private String thumbnailUrl;
 }
