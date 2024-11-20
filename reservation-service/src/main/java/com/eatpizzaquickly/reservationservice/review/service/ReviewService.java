@@ -22,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -44,7 +46,7 @@ public class ReviewService {
         concertException(concertDetailResponse);
 
         // 예매 데이터 가져오기
-        Reservation reservation = reservationOrElseThrow(concertDetailResponse.getData().getConcertId());
+        List<Reservation> reservation = reservationOrElseThrow(concertDetailResponse.getData().getConcertId());
         // 티켓 결제 됐는지 확인
         reservationException(reservation, ReservationStatus.CONFIRMED);
 
@@ -149,15 +151,16 @@ public class ReviewService {
     }
 
     /* 예매 데이터 가져오기 */
-    private Reservation reservationOrElseThrow(Long concertId) {
+    private List<Reservation> reservationOrElseThrow(Long concertId) {
         return reservationRepository.findByConcertId(concertId)
                 .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다."));
     }
 
     /* 티켓 결제 됐는지 확인 */
-    private void reservationException(Reservation reservation, ReservationStatus status) {
+    private void reservationException(List<Reservation> reservation, ReservationStatus status) {
+        boolean isValid = reservation.stream().anyMatch(r -> r.getStatus().equals(status));
         // 티켓 결제 됐는지 확인
-        if (!reservation.getStatus().equals(status)) {
+        if (!isValid) {
             throw new UnauthorizedException("리뷰를 입력할 권한이 없습니다.");
         }
     }
