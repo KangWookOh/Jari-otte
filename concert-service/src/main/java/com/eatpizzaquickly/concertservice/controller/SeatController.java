@@ -27,7 +27,7 @@ public class SeatController {
     public ResponseEntity<ApiResponse<Void>> reserveSeat(@PathVariable Long concertId,
                                                          @RequestHeader("X-Authenticated-User") Long userId,
                                                          @RequestBody SeatReservationRequest seatReservationRequest) {
-        seatService.reserveSeat(userId, concertId, seatReservationRequest);
+        seatService.reserveSeat(concertId, userId, seatReservationRequest);
         return ResponseEntity.ok(ApiResponse.success("좌석 예매 성공"));
     }
 
@@ -35,5 +35,11 @@ public class SeatController {
     public ResponseEntity<ApiResponse<AvailableSeatCountResponse>> getAvailableSeatCount(@PathVariable Long concertId) {
         AvailableSeatCountResponse availableSeatCount = seatService.getAvailableSeatCount(concertId);
         return ResponseEntity.ok(ApiResponse.success("잔여 좌석 수 조회 성공", availableSeatCount));
+    }
+
+    @PostMapping("/{concertId}/seats/{seatId}/restore")
+    public ResponseEntity<ApiResponse<Void>> restoreSeat(@PathVariable Long concertId, @PathVariable Long seatId) {
+        seatService.restoreSeat(concertId, seatId);
+        return ResponseEntity.ok(ApiResponse.success("좌석 복구 성공"));
     }
 }

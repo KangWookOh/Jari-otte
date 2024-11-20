@@ -2,7 +2,9 @@ package com.eatpizzaquickly.reservationservice.common.advice;
 
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Getter
 public class ApiResponse<T>{
     private String status;
