@@ -20,6 +20,7 @@ public class ConcertDetailResponse {
     private String title;
     private String location;
     private String description;
+    private String artists;
     private Integer seatCount;
     private int price;
 
@@ -43,6 +44,7 @@ public class ConcertDetailResponse {
                 concert.getTitle(),
                 venue.getLocation(),
                 concert.getDescription(),
+                concert.getArtists().toString(),
                 seatCount,
                 concert.getPrice(),
                 concert.getStartDate(),
@@ -58,6 +60,7 @@ public class ConcertDetailResponse {
                 concert.getTitle(),
                 concert.getVenue().getLocation(),
                 concert.getDescription(),
+                concert.getArtists().toString(),
                 concert.getVenue().getSeatCount(),
                 concert.getPrice(),
                 concert.getStartDate(),

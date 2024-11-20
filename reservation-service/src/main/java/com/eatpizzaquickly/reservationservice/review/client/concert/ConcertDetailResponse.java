@@ -18,6 +18,7 @@ public class ConcertDetailResponse {
     private String title;
     private String location;
     private String description;
+    private String artists;
     private Integer seatCount;
     private int price;
 

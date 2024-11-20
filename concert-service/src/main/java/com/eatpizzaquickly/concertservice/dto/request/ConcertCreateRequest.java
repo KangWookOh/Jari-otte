@@ -8,7 +8,6 @@ import java.util.List;
 @Getter
 public class ConcertCreateRequest {
     private String title;
-    private String location;
     private String description;
     private List<String> artists;
     private LocalDateTime startDate;
