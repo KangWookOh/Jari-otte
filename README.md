@@ -312,7 +312,7 @@ DLQ 처리 자동화: Dead Letter Queue에 쌓인 메시지의 복구 및 재처
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
 
 <details> 
-   <summary><font size=5>🍕 [MSA] Monolith -> MSA 이관을 통한 성능 개선</font></summary>
+   <summary><font size=5>🍕 [MSA] Monolith -> MSA 이관</font></summary>
   
   ### 📌 요약
 ### [Before]
@@ -328,7 +328,7 @@ DLQ 처리 자동화: Dead Letter Queue에 쌓인 메시지의 복구 및 재처
 </details>
 
 <details> 
-    <summary><font size=5>🍕 [Redis] Lua Script 도입으로 동시성 제어 및 성능 향상</font></summary>
+    <summary><font size=5>🍕 [Redis] 좌석 예매 동시성 제어</font></summary>
 
 ### 📌 요약
 ### 1. Before - 분산 락
@@ -400,7 +400,7 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 </div>
 
 <details>
-<summary><font size=5>🍕 [Redis] 공연 단건 조회 성능 향상</font></summary>
+<summary><font size=5>🍕 [Redis] 공연 단건 조회</font></summary>
 
 ### 📌 요약
 
@@ -432,7 +432,7 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 </details>
 
 <details> 
-    <summary><font size=5>🍕 [Spring Batch] No-Offset Reader를 사용한 성능 개선</font></summary>
+    <summary><font size=5>🍕 [Spring Batch] No-Offset Reader 사용</font></summary>
 <div>
   
 ### 📌 요약
@@ -536,7 +536,7 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 
 
 <details> 
-   <summary><font size=5>🍕 [Elastic Search] 검색 속도 기능 개선</font></summary>
+   <summary><font size=5>🍕 [Elastic Search] 검색 속도</font></summary>
   
   ![약 89.84% 개선)](https://github.com/user-attachments/assets/81e5bc2a-69a5-46bc-8e99-575ce7bddd48)
 
