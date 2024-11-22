@@ -187,11 +187,11 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 </details>
 <details> <summary><font size=5>💥 Batch Read & Delete </font></summary>
   
-📌 요약
+### 📌 요약
 Spring Batch 실행 중 데이터 손실 문제 발생. 특정 Step에서 Read Data가 절반으로 감소하여 원인 분석 후 해결 방안을 적용함.
 
 
-📌 배경
+### 📌 배경
 Spring Batch에서 Read & Delete 방식으로 데이터를 처리하는 동안 결과 값이 일치하지 않는 문제가 발생했습니다.
 
 배치 메타테이블을 확인한 결과, 특정 Step에서 Read Data가 절반으로 감소된 것을 확인했습니다.
@@ -206,13 +206,13 @@ Spring Batch의 ItemPagingReader는 데이터를 페이지 단위로 읽어오�
 이 과정에서 Page 0번 데이터가 갱신되어, ItemReader는 다음 페이지인 201~300 데이터를 읽어옴.
 결과적으로 배치 실행 중 전체 데이터의 절반만 처리되고, 나머지는 누락됨.
 
-🚨 문제점
+### 🚨 문제점
 Spring Batch에서 ItemPagingReader 사용 시:
 
 데이터 삭제 후 다시 페이지를 읽을 경우, Page 0번 데이터가 변경됨.
 데이터의 누락 문제로 인해 Read Data와 Write Data가 불일치.
 
-🔧 성능 개선
+### 🔧 성능 개선
 이 문제를 해결하기 위해 다음과 같은 방법을 검토했습니다:
 
 1️⃣ ItemReader를 항상 0번째 페이지로 고정하는 방식 적용
@@ -229,7 +229,7 @@ DB 커넥션을 유지하며 처음 조회한 결과를 고정하고 데이터�
 CursorReader는 Coupon 서비스에 API 요청을 보내 데이터를 받아오는 구조에서는 적합하지 않다고 판단했습니다.
 따라서, 항상 0번째 페이지를 읽도록 ItemReader를 수정하여 문제를 해결했습니다.
 
-✅ 추가 고려 사항(선택)
+### ✅ 추가 고려 사항(선택)
 데이터 볼륨이 증가할 경우 CursorReader 적용 방안 검토 필요.
 DB Connection Timeout 문제를 방지하기 위해 Connection Pool 또는 Batch 처리 시간을 줄이는 방식의 추가 최적화 고려.
 데이터 처리 로직과 Batch Step 간의 의존성을 줄여 더 안정적인 실행 구조 마련.
