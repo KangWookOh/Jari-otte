@@ -185,6 +185,51 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
   ![스크린샷 2024-11-20 065812](https://github.com/user-attachments/assets/174a50a1-5925-4662-9a76-a1f195eb327a)
 
 </details>
+<details> <summary><font size=5>💥 Batch Read & Delete </font></summary>
+📌 요약
+Spring Batch 실행 중 데이터 손실 문제 발생. 특정 Step에서 Read Data가 절반으로 감소하여 원인 분석 후 해결 방안을 적용함.
+
+📌 배경
+Spring Batch에서 Read & Delete 방식으로 데이터를 처리하는 동안 결과 값이 일치하지 않는 문제가 발생했습니다.
+
+배치 메타테이블을 확인한 결과, 특정 Step에서 Read Data가 절반으로 감소된 것을 확인했습니다.
+
+배치 실패를 의심하고 재시도했으나, 동일한 문제가 발생했습니다. 결과 상태는 Completed였기에 추가적으로 코드와 실행 방식을 검토했습니다.
+
+문제는 특정 Step에서 Chunk 단위로 데이터를 Read & Write 후 삭제하는 과정에서 발생했습니다.
+
+Spring Batch의 ItemPagingReader는 데이터를 페이지 단위로 읽어오는데, 아래와 같은 흐름이 문제의 원인이었습니다:
+
+첫 번째로 읽어온 데이터를 처리하고 삭제한 후, 다음 Chunk로 넘어감.
+이 과정에서 Page 0번 데이터가 갱신되어, ItemReader는 다음 페이지인 201~300 데이터를 읽어옴.
+결과적으로 배치 실행 중 전체 데이터의 절반만 처리되고, 나머지는 누락됨.
+🚨 문제점
+Spring Batch에서 ItemPagingReader 사용 시:
+
+데이터 삭제 후 다시 페이지를 읽을 경우, Page 0번 데이터가 변경됨.
+데이터의 누락 문제로 인해 Read Data와 Write Data가 불일치.
+🔧 성능 개선
+이 문제를 해결하기 위해 다음과 같은 방법을 검토했습니다:
+
+1️⃣ ItemReader를 항상 0번째 페이지로 고정하는 방식 적용
+
+데이터 삭제 후에도 항상 0번째 페이지를 기준으로 데이터를 읽음.
+수정된 데이터의 영향을 받지 않음.
+단점: 페이징 처리가 고정되므로 성능이 저하될 가능성이 있음.
+2️⃣ CursorReader 사용
+
+DB 커넥션을 유지하며 처음 조회한 결과를 고정하고 데이터를 순차적으로 처리.
+수정된 데이터의 영향을 받지 않는다는 장점이 있음.
+단점: DB Connection Timeout 문제가 발생할 수 있음.
+현재 해결 방법:
+CursorReader는 Coupon 서비스에 API 요청을 보내 데이터를 받아오는 구조에서는 적합하지 않다고 판단했습니다.
+따라서, 항상 0번째 페이지를 읽도록 ItemReader를 수정하여 문제를 해결했습니다.
+
+✅ 추가 고려 사항(선택)
+데이터 볼륨이 증가할 경우 CursorReader 적용 방안 검토 필요.
+DB Connection Timeout 문제를 방지하기 위해 Connection Pool 또는 Batch 처리 시간을 줄이는 방식의 추가 최적화 고려.
+데이터 처리 로직과 Batch Step 간의 의존성을 줄여 더 안정적인 실행 구조 마련.
+</details>
 
 # 📉 성능 개선
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
