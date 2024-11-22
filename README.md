@@ -259,6 +259,55 @@ Executors.newScheduledThreadPool() 메서드를 활용하여 미리 정의된 �
 장기적으로, Reactive Programming 도입 검토로 비동기 처리 효율성 개선.
 </details>
 
+<details> <summary><font size=5>💥 카프카 에러 핸들링 </font></summary>
+
+### 📌 요약
+Kafka 이벤트 발행 및 소비 과정에서 발생하는 장애를 CompletableFuture와 DefaultErrorHandler를 활용하여 안정적으로 처리했습니다. 장애 발생 시 Slack 알림을 통해 신속히 대응하며, 데이터 정합성을 유지하는 신뢰성 높은 시스템을 구축했습니다.
+
+![image](https://github.com/user-attachments/assets/613ae270-5dee-41d9-a12e-7deb624876a7)
+
+
+### 📌 배경
+Kafka를 활용해 이벤트를 발행 및 소비하는 시스템을 운영 중, 장애가 발생했을 때:
+
+이벤트 발행 실패 또는 소비 실패로 인해 데이터 정합성 문제가 발생.
+장애 원인을 발견하고 대응하는 데 시간이 소요되는 문제가 있었습니다.
+운영 환경에서는 장애 상황에서도:
+
+빠르게 문제를 인지하여 대응해야 하며,
+데이터의 정합성을 유지하는 것이 필수적이었습니다.
+
+### 🚨 문제점
+Kafka 이벤트 발행/소비 실패 시:
+장애가 발생했을 때 로그만 남고, 실시간 알림이 없어 대응이 지연됨.
+소비 실패로 인해 메시지가 누락되거나 데이터 정합성이 깨질 위험이 있음.
+장애 처리 코드의 복잡성으로 인해 시스템의 신뢰성이 저하됨.
+
+### 🔧 성능 개선
+문제를 해결하기 위해 다음과 같은 방식을 적용했습니다:
+
+1️⃣ CompletableFuture를 활용한 비동기 처리
+
+이벤트 발행 및 소비 과정을 CompletableFuture로 처리.
+성공 및 실패에 따라 후속 작업을 분기 처리하여 안정적인 흐름 보장.
+
+2️⃣ DefaultErrorHandler를 활용한 장애 관리
+
+Kafka 소비 실패 시 DefaultErrorHandler를 설정하여, 재시도 및 복구 로직을 구현.
+장애 발생 시 Slack 알림을 통해 실시간 대응 체계 마련.
+3️⃣ 데이터 정합성 유지
+
+이벤트 발행 실패 시 재시도를 포함한 복구 로직 적용.
+소비 실패 메시지를 DLQ(Dead Letter Queue)로 이동하여 데이터 누락 방지.
+
+### ✅ 추가 고려 사항(선택)
+모니터링 강화: Kafka의 이벤트 발행/소비 상태를 실시간으로 모니터링하는 대시보드 구축.
+DLQ 처리 자동화: Dead Letter Queue에 쌓인 메시지의 복구 및 재처리 자동화.
+테스트 및 검증 강화: 장애 처리 로직에 대한 스트레스 테스트로 시스템 안정성 검증.
+비동기 로직 최적화: CompletableFuture의 조합으로 작업 병렬 처리 최적화.
+
+</details>
+
 # 📉 성능 개선
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
 
