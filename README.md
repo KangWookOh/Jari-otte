@@ -399,7 +399,36 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
       <div>
 </div>
 
+<details>
+<summary><font size=5>🍕 공연 단건 조회 성능 향상</font></summary>
 
+### 📌 요약
+
+공연정보와 잔여 좌석수를 함께 조회하지 않고 공연 정보는 캐시, 잔여 좌석 수는 Redis 에서 실시간으로 조회하게 해서 81.43%의 성능 향상을 달성했습니다.
+
+### 🚨문제점
+
+공연 정보와 잔여 좌석 수를 함께 조회할 때는 자주 변하는 값이면서 정확해야 하는 잔여 좌석 수 때문에 캐싱이 비효율적이었습니다.
+
+### ☀️해결 방안
+
+공연 정보의 조회와 잔여 좌석수의 조회를 별도로 분리했습니다.
+
+### 🔧성능 개선
+
+### [BEFORE] - 공연정보와 잔여 좌석 수를 함께 조회
+
+![image (4).png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c78f18fe-ae95-41e3-bb85-6a922ec00bbc/99667393-fca8-4f18-bf6a-935a0d4f61e0/image_(4).png)
+
+### [AFTER] - 공연정보와 잔여 좌석 수를 별도 조회
+
+![image (5).png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c78f18fe-ae95-41e3-bb85-6a922ec00bbc/816156a6-0b93-4aa9-896f-a430d1e8ef67/image_(5).png)
+
+### 성능 향상: 81.43%
+
+![output (2) (1).png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c78f18fe-ae95-41e3-bb85-6a922ec00bbc/06977477-1353-4375-bcd9-dc37a7675b2d/output_(2)_(1).png)
+
+</details>
 
 <details> 
     <summary><font size=5>🍕 [Spring Batch] No-Offset Reader를 사용한 성능 개선</font></summary>
@@ -697,7 +726,6 @@ public static BoolQuery createConcertSearchQuery(String query, LocalDate startDa
 - **모니터링과 로그 관리**: Kibana와 Slow Log를 활용하여 검색 요청 병목 지점 파악 및 성능 문제 사전 대응.
 
 </details>
-
 
 <details> 
    <summary><font size=5>🍕 성능 개선 템플릿</font></summary>
