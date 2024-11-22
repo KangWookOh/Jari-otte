@@ -222,7 +222,9 @@ CursorReader는 Coupon 서비스에 API 요청을 보내 데이터를 받아오�
 DB Connection Timeout 문제를 방지하기 위해 Connection Pool 또는 Batch 처리 시간을 줄이는 방식의 추가 최적화 고려.
 데이터 처리 로직과 Batch Step 간의 의존성을 줄여 더 안정적인 실행 구조 마련.
 </details>
+
 <details> <summary><font size=5>💥 대기열 기능 자원 낭비 </font></summary>
+
 ### 📌 요약
 공연별 대기열 처리를 위해 SingleThreadScheduledExecutor를 사용하던 기존 방식에서, 요청마다 새로운 스레드풀이 생성되어 자원 낭비 문제가 발생함. 이를 해결하기 위해 공용 스레드 풀을 활용한 방식으로 전환하여 효율성을 개선함.
 
@@ -241,7 +243,7 @@ SingleThreadScheduledExecutor 사용의 한계:
 요청마다 개별적인 스레드풀 생성으로 리소스 낭비 및 처리 효율성 저하.
 스레드 관리 부족으로 인해 성능 이슈가 발생할 가능성 증가.
 
-###🔧 성능 개선
+### 🔧 성능 개선
 해결 방안으로 공용 스레드 풀을 사용하는 방식으로 전환했습니다.
 Executors.newScheduledThreadPool() 메서드를 활용하여 미리 정의된 스레드 수를 가진 공용 스레드 풀을 생성하였습니다.
 이를 통해:
