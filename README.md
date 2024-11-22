@@ -803,14 +803,4 @@ public static BoolQuery createConcertSearchQuery(String query, LocalDate startDa
 
 </details>
 
-<details> 
-   <summary><font size=5>🍕 성능 개선 템플릿</font></summary>
-  
-  ### 📌 요약
-  
-  ### 🚨문제점
 
-  ### ☀️해결 방안 
-
-  ### 🔧성능 개선 
-</details>
