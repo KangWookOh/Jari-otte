@@ -384,7 +384,7 @@ Redis Sentinel 환경에서 3개 노드 구성을 기반으로 원자성을 보�
 </details>
 
 # 📉 성능 개선
-[성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
+
 
 <details> 
    <summary><font size=5>🍕 [MSA] Monolith -> MSA 이관</font></summary>
